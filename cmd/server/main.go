@@ -75,7 +75,7 @@ type Config struct {
 // DefaultConfig returns the default configuration
 func DefaultConfig() *Config {
 	return &Config{
-		Port:         8080,
+		Port:         8081,
 		Host:         "0.0.0.0",
 		ReadTimeout:  15,
 		WriteTimeout: 15,
@@ -128,7 +128,7 @@ func init() {
 	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging")
 
 	// Server flags
-	serveCmd.Flags().IntP("port", "p", 8080, "Port to listen on")
+	serveCmd.Flags().IntP("port", "p", 8081, "Port to listen on")
 	serveCmd.Flags().String("host", "0.0.0.0", "Host to bind to")
 	serveCmd.Flags().Int("read-timeout", 15, "Read timeout in seconds")
 	serveCmd.Flags().Int("write-timeout", 15, "Write timeout in seconds")

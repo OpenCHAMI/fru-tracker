@@ -22,7 +22,7 @@ import (
 // --- Configuration ---
 
 // InventoryAPIHost is the address of the Fabrica API server.
-const InventoryAPIHost = "http://localhost:8080" // Your server runs on 8080
+const InventoryAPIHost = "http://localhost:8081" // Your server runs on 8081
 
 // DefaultUsername and DefaultPassword are hardcoded for Redfish basic auth.
 const DefaultUsername = "root"
