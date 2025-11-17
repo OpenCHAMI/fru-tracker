@@ -6,6 +6,7 @@ package device
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/openchami/fabrica/pkg/resource"
 )
 
