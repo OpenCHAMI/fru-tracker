@@ -18,8 +18,21 @@ type Device struct {
 
 // DeviceSpec defines the desired state of Device
 type DeviceSpec struct {
-	Description string `json:"description,omitempty" validate:"max=200"`
-	// Add your spec fields here
+DeviceType   string `json:"deviceType" validate:"required"`
+	Manufacturer string `json:"manufacturer,omitempty"`
+	PartNumber   string `json:"partNumber,omitempty"`
+	SerialNumber string `json:"serialNumber" validate:"required"`
+
+	// ParentID holds the UID of the parent device.
+	// This will be populated by the reconciler.
+	ParentID string `json:"parentID,omitempty"`
+
+	// ParentSerialNumber holds the serial number of the parent.
+	// The collector will set this, and the reconciler will resolve it to a ParentID.
+	ParentSerialNumber string `json:"parentSerialNumber,omitempty"`
+
+	// Properties is an arbitrary key-value map for non-standard attributes.
+	Properties map[string]json.RawMessage `json:"properties,omitempty"`
 }
 
 // DeviceStatus defines the observed state of Device
@@ -27,7 +40,9 @@ type DeviceStatus struct {
 	Phase      string `json:"phase,omitempty"`
 	Message    string `json:"message,omitempty"`
 	Ready      bool   `json:"ready"`
-	// Add your status fields here
+	
+	// ChildrenDeviceIds is a read-only list of devices contained within this one.
+	ChildrenDeviceIds []string `json:"childrenDeviceIds,omitempty"`
 }
 
 // Validate implements custom validation logic for Device
