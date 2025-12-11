@@ -177,3 +177,55 @@ The following table shows the successful resolution of a child DIMM to its paren
 | **Node** | `QSBP82909274` | (empty) | (empty) |
 | **DIMM** | `3128C51A` | `QSBP82909274` | **`dev-505df620`** |
 | **DIMM** | `10CD71D4` | `QSBP82909274` | **`dev-505df620`** |
+
+## Using Your Own Collector (Bulk Upload)
+
+The Inventory Service is designed to be passive; it does not require direct connectivity to your management network or BMCs. If you don't want to use the provided collector, you can use an external collector to push data to the API.
+
+While there is a provided Go collector, you can write your own collector. The API provides a single bulk endpoint via the `DiscoverySnapshot` resource.
+
+### 1. Format Your Inventory Data
+Prepare your inventory data as a JSON array of device specifications. Each object should include at least a `deviceType` and a unique identifier (either `serialNumber` or a `redfish_uri` in `properties`).
+
+**inventory_payload.json**:
+```json
+[
+  {
+    "deviceType": "Node",
+    "serialNumber": "QSBP82909274",
+    "manufacturer": "Intel",
+    "properties": { "redfish_uri": "/Systems/QSBP82909274" }
+  },
+  {
+    "deviceType": "DIMM",
+    "partNumber": "16GB-DDR4",
+    "serialNumber": "3128C51A",
+    "parentSerialNumber": "QSBP82909274",
+    "properties": { "redfish_uri": "/Systems/QSBP82909274/Memory/1" }
+  }
+]
+```
+
+### 2. Wrap it in a Snapshot
+To upload this data, wrap the JSON array into the `rawData` field of a `DiscoverySnapshot` resource.
+
+**upload_request.json**:
+```json
+{
+  "name": "manual-upload-001",
+  "spec": {
+    "rawData": [ ... paste your inventory_payload.json array here ... ]
+  }
+}
+```
+
+### 3. POST to the API
+Submit the snapshot to the API. The server will immediately accept the payload (201 Created) and process the creating and linking of devices in the background.
+
+```bash
+curl -X POST http://localhost:8080/discoverysnapshots \
+  -H "Content-Type: application/json" \
+  -d @upload_request.json
+```
+
+This approach allows you to run the collection logic on a distinct network segment, while keeping this service isolated.
