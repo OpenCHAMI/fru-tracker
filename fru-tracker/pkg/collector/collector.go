@@ -2,7 +2,7 @@
 package collector
 
 import (
-	"context"
+"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -16,6 +16,7 @@ import (
 
 	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	fabricaclient "github.com/example/fru-tracker/pkg/client"
+	"github.com/openchami/fabrica/pkg/fabrica"
 )
 
 // --- Configuration ---
@@ -65,19 +66,20 @@ func CollectAndPost(bmcIP string) error {
 	// --- 5. POST THE SNAPSHOT ---
 	fmt.Println("Creating new DiscoverySnapshot resource...")
 
-	// Create the Spec for the new snapshot
-	snapshotSpec := v1.DiscoverySnapshotSpec{
-		RawData: json.RawMessage(snapshotData),
-	}
-
-	// The generated CreateDiscoverySnapshotRequest struct embeds the Spec struct
-	createReq := fabricaclient.CreateDiscoverySnapshotRequest{
-		Name:                  fmt.Sprintf("snapshot-%s-%d", bmcIP, time.Now().Unix()),
-		DiscoverySnapshotSpec: snapshotSpec, // Use the embedded struct
+	// Create the full resource object required by the new SDK
+	snapshotPayload := v1.DiscoverySnapshot{
+		APIVersion: "example.fabrica.dev/v1",
+		Kind:       "DiscoverySnapshot",
+		Metadata: fabrica.Metadata{
+			Name: fmt.Sprintf("snapshot-%s-%d", bmcIP, time.Now().Unix()),
+		},
+		Spec: v1.DiscoverySnapshotSpec{
+			RawData: json.RawMessage(snapshotData),
+		},
 	}
 
 	// Use the SDK to create the snapshot resource
-	createdSnapshot, err := sdkClient.CreateDiscoverySnapshot(ctx, createReq)
+	createdSnapshot, err := sdkClient.CreateDiscoverySnapshot(ctx, snapshotPayload)
 	if err != nil {
 		return fmt.Errorf("failed to create snapshot: %w", err)
 	}
