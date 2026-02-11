@@ -66,8 +66,8 @@ func CollectAndPost(bmcIP string) error {
 	// --- 5. POST THE SNAPSHOT ---
 	fmt.Println("Creating new DiscoverySnapshot resource...")
 
-	// Create the full resource object required by the new SDK
-	snapshotPayload := v1.DiscoverySnapshot{
+	// Create the request using the SDK's generated request type
+	createReq := fabricaclient.CreateDiscoverySnapshotRequest{
 		APIVersion: "example.fabrica.dev/v1",
 		Kind:       "DiscoverySnapshot",
 		Metadata: fabrica.Metadata{
@@ -79,7 +79,7 @@ func CollectAndPost(bmcIP string) error {
 	}
 
 	// Use the SDK to create the snapshot resource
-	createdSnapshot, err := sdkClient.CreateDiscoverySnapshot(ctx, snapshotPayload)
+	createdSnapshot, err := sdkClient.CreateDiscoverySnapshot(ctx, createReq)
 	if err != nil {
 		return fmt.Errorf("failed to create snapshot: %w", err)
 	}
