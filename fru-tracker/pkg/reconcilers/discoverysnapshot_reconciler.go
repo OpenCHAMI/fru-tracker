@@ -119,19 +119,17 @@ func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec 
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate UID for device: %w", err)
 	}
-	now := time.Now()
 	
 	newDevice := &v1.Device{
+		APIVersion: "example.fabrica.dev/v1",
+		Kind:       "Device",
+		Metadata: fabrica.Metadata{
+			Name: redfishURI,
+			UID:  uid,
+		},
 		Spec: spec,
 	}
-	
-	newDevice.APIVersion = "example.fabrica.dev/v1"
-	newDevice.Kind = "Device"
-	newDevice.SchemaVersion = "v1"
-	newDevice.Metadata.UID = uid
-	newDevice.Metadata.Name = redfishURI
-	newDevice.Metadata.CreatedAt = now
-	newDevice.Metadata.UpdatedAt = now
+	newDevice.Metadata.Initialize(newDevice.Metadata.Name, newDevice.Metadata.UID)
 
 	if err := r.Client.Create(ctx, newDevice); err != nil {
 		return nil, fmt.Errorf("failed to create device %s: %w", redfishURI, err)
