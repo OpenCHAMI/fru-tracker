@@ -7,14 +7,16 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	"github.com/openchami/fabrica/pkg/resource"
+	"github.com/openchami/fabrica/pkg/fabrica"
 )
 
 // Device represents a Device resource
 type Device struct {
-	resource.Resource
-	Spec   DeviceSpec   `json:"spec" validate:"required"`
-	Status DeviceStatus `json:"status,omitempty"`
+	APIVersion string           `json:"apiVersion"`
+	Kind       string           `json:"kind"`
+	Metadata   fabrica.Metadata `json:"metadata"`
+	Spec       DeviceSpec       `json:"spec" validate:"required"`
+	Status     DeviceStatus     `json:"status,omitempty"`
 }
 
 // DeviceSpec defines the desired state of Device
@@ -64,9 +66,4 @@ func (r *Device) GetName() string {
 // GetUID returns the UID of the resource
 func (r *Device) GetUID() string {
 	return r.Metadata.UID
-}
-
-func init() {
-	// Register resource type prefix for storage
-	resource.RegisterResourcePrefix("Device", "dev")
 }

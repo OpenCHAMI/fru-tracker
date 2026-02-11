@@ -7,14 +7,16 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	"github.com/openchami/fabrica/pkg/resource"
+	"github.com/openchami/fabrica/pkg/fabrica"
 )
 
 // DiscoverySnapshot represents a DiscoverySnapshot resource
 type DiscoverySnapshot struct {
-	resource.Resource
-	Spec   DiscoverySnapshotSpec   `json:"spec" validate:"required"`
-	Status DiscoverySnapshotStatus `json:"status,omitempty"`
+	APIVersion string                  `json:"apiVersion"`
+	Kind       string                  `json:"kind"`
+	Metadata   fabrica.Metadata        `json:"metadata"`
+	Spec       DiscoverySnapshotSpec   `json:"spec" validate:"required"`
+	Status     DiscoverySnapshotStatus `json:"status,omitempty"`
 }
 
 // DiscoverySnapshotSpec defines the desired state of DiscoverySnapshot
@@ -49,9 +51,4 @@ func (r *DiscoverySnapshot) GetName() string {
 // GetUID returns the UID of the resource
 func (r *DiscoverySnapshot) GetUID() string {
 	return r.Metadata.UID
-}
-
-func init() {
-	// Register resource type prefix for storage
-	resource.RegisterResourcePrefix("DiscoverySnapshot", "dis")
 }

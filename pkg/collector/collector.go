@@ -68,8 +68,6 @@ func CollectAndPost(bmcIP string) error {
 
 	// Create the request using the SDK's generated request type
 	createReq := fabricaclient.CreateDiscoverySnapshotRequest{
-		APIVersion: "example.fabrica.dev/v1",
-		Kind:       "DiscoverySnapshot",
 		Metadata: fabrica.Metadata{
 			Name: fmt.Sprintf("snapshot-%s-%d", bmcIP, time.Now().Unix()),
 		},
