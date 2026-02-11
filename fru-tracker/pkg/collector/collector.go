@@ -14,9 +14,8 @@ import (
 	"strings"
 	"time"
 
-	fabricaclient "github.com/example/fru-trackerpkg/client"
-	"github.com/example/fru-tracker/pkg/resources/device"
-	"github.com/example/fru-tracker/pkg/resources/discoverysnapshot"
+	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	fabricaclient "github.com/example/fru-tracker/pkg/client"
 )
 
 // --- Configuration ---
@@ -67,7 +66,7 @@ func CollectAndPost(bmcIP string) error {
 	fmt.Println("Creating new DiscoverySnapshot resource...")
 
 	// Create the Spec for the new snapshot
-	snapshotSpec := discoverysnapshot.DiscoverySnapshotSpec{
+	snapshotSpec := v1.DiscoverySnapshotSpec{
 		RawData: json.RawMessage(snapshotData),
 	}
 
@@ -135,8 +134,8 @@ func (c *RedfishClient) Get(path string) ([]byte, error) {
 // --- Redfish Discovery and Mapping Functions ---
 
 // discoverDevices uses the Redfish client to walk the resource hierarchy.
-func discoverDevices(c *RedfishClient) ([]*device.DeviceSpec, error) {
-	var specs []*device.DeviceSpec
+func discoverDevices(c *RedfishClient) ([]*v1.DeviceSpec, error) {
+	var specs []*v1.DeviceSpec
 
 	systemsBody, err := c.Get("/Systems")
 	if err != nil {
@@ -178,7 +177,7 @@ func discoverDevices(c *RedfishClient) ([]*device.DeviceSpec, error) {
 
 // getSystemInventory discovers a single system (Node) and its children.
 func getSystemInventory(c *RedfishClient, systemURI string, systemData *RedfishSystem) (*SystemInventory, error) {
-	inv := &SystemInventory{CPUs: make([]*device.DeviceSpec, 0), DIMMs: make([]*device.DeviceSpec, 0)}
+	inv := &SystemInventory{CPUs: make([]*v1.DeviceSpec, 0), DIMMs: make([]*v1.DeviceSpec, 0)}
 
 	// Map Node Data
 	inv.NodeSpec = mapCommonProperties(
@@ -215,8 +214,8 @@ func getSystemInventory(c *RedfishClient, systemURI string, systemData *RedfishS
 }
 
 // getCollectionDevices retrieves a collection, iterates over members, and maps them.
-func getCollectionDevices(c *RedfishClient, collectionURI, deviceType, parentURI, parentSerial string, componentTypeExample interface{}) ([]*device.DeviceSpec, error) {
-	var specs []*device.DeviceSpec
+func getCollectionDevices(c *RedfishClient, collectionURI, deviceType, parentURI, parentSerial string, componentTypeExample interface{}) ([]*v1.DeviceSpec, error) {
+	var specs []*v1.DeviceSpec
 	collectionBody, err := c.Get(collectionURI)
 	if err != nil {
 		return nil, err
@@ -246,7 +245,7 @@ func getCollectionDevices(c *RedfishClient, collectionURI, deviceType, parentURI
 }
 
 // mapCommonProperties maps Redfish fields to the API's DeviceSpec struct.
-func mapCommonProperties(rfProps CommonRedfishProperties, deviceType, redfishURI, parentURI, parentSerial string) *device.DeviceSpec {
+func mapCommonProperties(rfProps CommonRedfishProperties, deviceType, redfishURI, parentURI, parentSerial string) *v1.DeviceSpec {
 	partNum := rfProps.PartNumber
 	if partNum == "" {
 		partNum = rfProps.Model
@@ -258,7 +257,7 @@ func mapCommonProperties(rfProps CommonRedfishProperties, deviceType, redfishURI
 		"redfish_parent_uri": parentURIBytes,
 	}
 
-	return &device.DeviceSpec{
+	return &v1.DeviceSpec{
 		DeviceType:         deviceType,
 		Manufacturer:       rfProps.Manufacturer,
 		PartNumber:         partNum,
