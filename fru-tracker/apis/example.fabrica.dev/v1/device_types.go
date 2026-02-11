@@ -7,14 +7,17 @@ package v1
 import (
 	"context"
 	"encoding/json"
+	"github.com/openchami/fabrica/pkg/fabrica"
 	"github.com/openchami/fabrica/pkg/resource"
 )
 
 // Device represents a Device resource
 type Device struct {
-	resource.Resource
-	Spec   DeviceSpec   `json:"spec" validate:"required"`
-	Status DeviceStatus `json:"status,omitempty"`
+	APIVersion string           `json:"apiVersion"`
+	Kind       string           `json:"kind"`
+	Metadata   fabrica.Metadata `json:"metadata"`
+	Spec       DeviceSpec       `json:"spec" validate:"required"`
+	Status     DeviceStatus     `json:"status,omitempty"`
 }
 
 // DeviceSpec defines the desired state of Device

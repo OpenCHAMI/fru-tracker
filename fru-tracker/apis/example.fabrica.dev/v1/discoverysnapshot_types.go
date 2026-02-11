@@ -7,14 +7,17 @@ package v1
 import (
 	"context"
 	"encoding/json"
+	"github.com/openchami/fabrica/pkg/fabrica"
 	"github.com/openchami/fabrica/pkg/resource"
 )
 
 // DiscoverySnapshot represents a DiscoverySnapshot resource
 type DiscoverySnapshot struct {
-	resource.Resource
-	Spec   DiscoverySnapshotSpec   `json:"spec" validate:"required"`
-	Status DiscoverySnapshotStatus `json:"status,omitempty"`
+	APIVersion string                  `json:"apiVersion"`
+	Kind       string                  `json:"kind"`
+	Metadata   fabrica.Metadata        `json:"metadata"`
+	Spec       DiscoverySnapshotSpec   `json:"spec" validate:"required"`
+	Status     DiscoverySnapshotStatus `json:"status,omitempty"`
 }
 
 // DiscoverySnapshotSpec defines the desired state of DiscoverySnapshot
