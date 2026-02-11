@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
+	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/openchami/fabrica/pkg/events"
 	"github.com/openchami/fabrica/pkg/reconcile"
 )
@@ -95,7 +95,7 @@ func (r *DeviceReconciler) Reconcile(ctx context.Context, resource interface{}) 
 	}
 
 	// 2. Unmarshal it into the correct type
-	var res device.Device // This is the typed struct
+	var res v1.Device // This is the typed struct
 	if err := json.Unmarshal(raw, &res); err != nil {
 		err := fmt.Errorf("failed to unmarshal resource: %w", err)
 		r.Logger.Errorf(err.Error())

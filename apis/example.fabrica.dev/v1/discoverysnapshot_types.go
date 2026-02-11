@@ -2,19 +2,21 @@
 //
 // SPDX-License-Identifier: MIT
 
-package discoverysnapshot
+package v1
 
 import (
 	"context"
-	"github.com/openchami/fabrica/pkg/resource"
 	"encoding/json"
+	"github.com/openchami/fabrica/pkg/fabrica"
 )
 
 // DiscoverySnapshot represents a DiscoverySnapshot resource
 type DiscoverySnapshot struct {
-	resource.Resource
-	Spec   DiscoverySnapshotSpec   `json:"spec" validate:"required"`
-	Status DiscoverySnapshotStatus `json:"status,omitempty"`
+	APIVersion string                  `json:"apiVersion"`
+	Kind       string                  `json:"kind"`
+	Metadata   fabrica.Metadata        `json:"metadata"`
+	Spec       DiscoverySnapshotSpec   `json:"spec" validate:"required"`
+	Status     DiscoverySnapshotStatus `json:"status,omitempty"`
 }
 
 // DiscoverySnapshotSpec defines the desired state of DiscoverySnapshot
@@ -26,21 +28,16 @@ type DiscoverySnapshotSpec struct {
 
 // DiscoverySnapshotStatus defines the observed state of DiscoverySnapshot
 type DiscoverySnapshotStatus struct {
-	Phase      string `json:"phase,omitempty"`
-	Message    string `json:"message,omitempty"`
-	Ready      bool   `json:"ready"`
+	Phase   string `json:"phase,omitempty"`
+	Message string `json:"message,omitempty"`
+	Ready   bool   `json:"ready"`
 }
 
 // Validate implements custom validation logic for DiscoverySnapshot
 func (r *DiscoverySnapshot) Validate(ctx context.Context) error {
-	// Add custom validation logic here
-	// Example:
-	// if r.Spec.Name == "forbidden" {
-	//     return errors.New("name 'forbidden' is not allowed")
-	// }
-
 	return nil
 }
+
 // GetKind returns the kind of the resource
 func (r *DiscoverySnapshot) GetKind() string {
 	return "DiscoverySnapshot"
@@ -54,9 +51,4 @@ func (r *DiscoverySnapshot) GetName() string {
 // GetUID returns the UID of the resource
 func (r *DiscoverySnapshot) GetUID() string {
 	return r.Metadata.UID
-}
-
-func init() {
-	// Register resource type prefix for storage
-	resource.RegisterResourcePrefix("DiscoverySnapshot", "dis")
 }

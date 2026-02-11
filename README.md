@@ -1,11 +1,11 @@
-# inventory-v3
+# fru-tracker
 
 ## Getting Started
 This is an inventory API for OpenCHAMI, generated with Fabrica, based on an event-driven reconciliation model.
 
 Unlike a simple CRUD API, this service is designed to be populated by a collector.
 1.  A Redfish collector (`cmd/collector`) discovers hardware and `POST`s a complete `DiscoverySnapshot` resource to the API.
-2.  This `POST` creates the snapshot and automatically publishes a `resource.created` event via the generated handlers.
+2.  This `POST` creates the snapshot and automatically publishes a `fru-tracker.resource.discoverysnapshot.created` event via the generated handlers.
 3.  A server-side `DiscoverySnapshotReconciler` catches this event and begins processing the snapshot's `rawData` payload.
 4.  The reconciler performs a "get-or-create" for each `Device` in the payload, using the **Redfish URI** as the unique key (to handle components without serial numbers).
 5.  A two-pass system ensures that after all devices are created, parent/child relationships are linked by resolving the `parentSerialNumber` (from the collector) to the `parentID` (the parent's UUID in the database).
@@ -44,9 +44,8 @@ The `properties` field is a map where keys are strings and values can be any val
 </details>
 
 ### Metadata
-* **apiVersion (String):** The API group version (e.g., "inventory/v1").
+* **apiVersion (String):** The API group version (e.g., "example.fabrica.dev/v1").
 * **kind (String):** The resource type (e.g., "Device").
-* **schemaVersion (String):** The version of this resource's schema.
 * **createdAt (Timestamp):** Timestamp of when the device was created.
 * **updatedAt (Timestamp):** Timestamp of the last update.
 
@@ -57,7 +56,7 @@ The `properties` field is a map where keys are strings and values can be any val
 ### Running the API Server
 The server runs the API endpoints and the background reconciliation controller.
 
-```bash
+``` bash
 # Install dependencies
 go mod tidy
 
@@ -72,7 +71,7 @@ This repository includes a command-line tool to discover hardware from a BMC via
 
 **Note:** The collector currently uses hardcoded credentials in `pkg/collector/collector.go` (`DefaultUsername` and `DefaultPassword`). These must be updated to match your target BMC.
 
-```bash
+``` bash
 # Install dependencies
 go mod tidy
 
@@ -86,83 +85,87 @@ go run ./cmd/collector/main.go --ip <BMC_IP_ADDRESS>
 This section shows the successful end-to-end test run. The collector discovers hardware, posts a `DiscoverySnapshot`, and the server-side reconciler processes the data to create and link the `Device` resources.
 
 ### Step 1: Collector Output
-The collector successfully found 7 devices and posted them to the API.
+The collector successfully found 7 devices (1 Node, 2 CPUs, 4 DIMMs) and posted them to the API.
 
-```bash
+``` bash
 $ go run ./cmd/collector/main.go --ip 172.24.0.2
 Starting inventory collection for BMC IP: 172.24.0.2
 Starting Redfish discovery...
 Redfish Discovery Complete: Found 7 total devices.
 Creating new DiscoverySnapshot resource...
-Successfully created snapshot with UID: dis-1e7b1b56
+Successfully created snapshot with UID: discoverysnapshot-639ab206
 The server reconciler will now process this snapshot.
 Inventory collection and posting completed successfully.
 ```
 
 ### Step 2: Server Reconciliation Log
-The server logs show the generated handler receiving the post, the event bus dispatching the event, and the `DiscoverySnapshotReconciler` executing the two-pass logic using the `redfish_uri` as the primary key.
+The server logs show the generated handler receiving the post, the event bus dispatching the event, and the `DiscoverySnapshotReconciler` executing the two-pass logic.
 
-```bash
+``` bash
 $ go run ./cmd/server serve
 ...
 [INFO] Reconciliation controller started with 5 workers
 [INFO] Server starting on 0.0.0.0:8080
 ...
-[DEBUG] Processing reconciliation for DiscoverySnapshot/dis-1e7b1b56 (reason: Event: inventory-v3.resource.discoverysnapshot.created)
-[INFO] Reconciling snapshot-172.24.0.2-1763412474: Starting reconciliation
-[INFO] Reconciling snapshot-172.24.0.2-1763412474: Loaded 0 existing devices into map
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 1): Creating new device: QSBP82909274
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 1): Creating new device: 3128C51A
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 1): Creating new device: 10CD71D4
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 1): Creating new device: 3128C442
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 1): Creating new device: 10CD71BE
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 2): Linking parent relationships...
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 2): Linking 3128C51A (UID: dev-bb91bd85) to parent QSBP82909274 (UID: dev-505df620)
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 2): Linking 10CD71D4 (UID: dev-bfbea2ad) to parent QSBP82909274 (UID: dev-505df620)
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 2): Linking 3128C442 (UID: dev-9df32a66) to parent QSBP82909274 (UID: dev-505df620)
-[INFO] Reconciling snapshot-172.24.0.2-1763412474 (Pass 2): Linking 10CD71BE (UID: dev-b648b548) to parent QSBP82909274 (UID: dev-505df620)
-[INFO] Reconciling snapshot-172.24.0.2-1763412474: Successfully reconciled
-[DEBUG] Reconciliation successful for DiscoverySnapshot/dis-1e7b1b56
+[DEBUG] Processing reconciliation for DiscoverySnapshot/discoverysnapshot-639ab206 (reason: Event: fru-tracker.resource.discoverysnapshot.created)
+[DEBUG] Reconciling DiscoverySnapshot DiscoverySnapshot/discoverysnapshot-639ab206
+[INFO] Reconciling snapshot-172.24.0.2-1770836443: Starting reconciliation
+[INFO] Reconciling snapshot-172.24.0.2-1770836443: Loaded 2 devices by URI and 2 by Serial
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Processors/CPU1
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Processors/CPU2
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory1
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory2
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory3
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory4
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking parent relationships...
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Processors/CPU1 (UID: device-244b078d) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Processors/CPU2 (UID: device-e4973199) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory1 (UID: device-27b7425d) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory2 (UID: device-506327c2) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory3 (UID: device-693d311f) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
+[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory4 (UID: device-3f4acf01) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
+[INFO] Reconciling snapshot-172.24.0.2-1770836443: Successfully reconciled
+[DEBUG] Reconciliation successful for DiscoverySnapshot/discoverysnapshot-639ab206
 ```
 
 ### Step 3: Final Data in API (Result)
-A `GET /devices` call confirms that the devices were created and linked. Note the `spec` field for the DIMM, which now contains the resolved `parentID` pointing to the Node's UUID.
+A `GET /devices` call confirms that the devices were created and linked. Note the `spec` field for the child components, which now contains the resolved `parentID` pointing to the Node's UUID (`device-6dad4952`).
 
-```json
+``` json
 [
   {
-    "apiVersion": "v1",
+    "apiVersion": "example.fabrica.dev/v1",
     "kind": "Device",
     "metadata": {
-      "name": "QSBP82909274",
-      "uid": "dev-505df620",
+      "name": "/Systems/QSBP82909274",
+      "uid": "device-6dad4952",
       ...
     },
     "spec": {
       "deviceType": "Node",
       "serialNumber": "QSBP82909274",
-      "parentSerialNumber": "",
       "properties": {
         "redfish_uri": "/Systems/QSBP82909274"
       }
     }
   },
   {
-    "apiVersion": "v1",
+    "apiVersion": "example.fabrica.dev/v1",
     "kind": "Device",
     "metadata": {
-      "name": "3128C51A",
-      "uid": "dev-bb91bd85",
+      "name": "/Systems/QSBP82909274/Processors/CPU1",
+      "uid": "device-244b078d",
       ...
     },
     "spec": {
-      "deviceType": "DIMM",
-      "manufacturer": "Hynix",
-      "serialNumber": "3128C51A",
-      "parentID": "dev-505df620",
+      "deviceType": "CPU",
+      "manufacturer": "Intel",
+      "serialNumber": "CPU1-Serial",
+      "parentID": "device-6dad4952",
       "parentSerialNumber": "QSBP82909274",
       "properties": {
-        "redfish_uri": "/Systems/QSBP82909274/Memory/Memory1"
+        "redfish_uri": "/Systems/QSBP82909274/Processors/CPU1"
       }
     }
   }
@@ -170,13 +173,13 @@ A `GET /devices` call confirms that the devices were created and linked. Note th
 ```
 
 ### Data Analysis (Parent/Child Linking)
-The following table shows the successful resolution of a child DIMM to its parent Node, as performed by the two-pass reconciler.
+The following table shows the successful resolution of child components to their parent Node, as performed by the two-pass reconciler.
 
 | Device | `spec.serialNumber` | `spec.parentSerialNumber` | `spec.parentID` (Resolved by Reconciler) |
 | :--- | :--- | :--- | :--- |
 | **Node** | `QSBP82909274` | (empty) | (empty) |
-| **DIMM** | `3128C51A` | `QSBP82909274` | **`dev-505df620`** |
-| **DIMM** | `10CD71D4` | `QSBP82909274` | **`dev-505df620`** |
+| **CPU 1** | `CPU1-Serial` | `QSBP82909274` | **`device-6dad4952`** |
+| **DIMM 1** | `DIMM1-Serial` | `QSBP82909274` | **`device-6dad4952`** |
 
 ## Using Your Own Collector (Bulk Upload)
 
@@ -188,7 +191,7 @@ While there is a provided Go collector, you can write your own collector. The AP
 Prepare your inventory data as a JSON array of device specifications. Each object should include at least a `deviceType` and a unique identifier (either `serialNumber` or a `redfish_uri` in `properties`).
 
 **inventory_payload.json**:
-```json
+``` json
 [
   {
     "deviceType": "Node",
@@ -210,9 +213,13 @@ Prepare your inventory data as a JSON array of device specifications. Each objec
 To upload this data, wrap the JSON array into the `rawData` field of a `DiscoverySnapshot` resource.
 
 **upload_request.json**:
-```json
+``` json
 {
-  "name": "manual-upload-001",
+  "apiVersion": "example.fabrica.dev/v1",
+  "kind": "DiscoverySnapshot",
+  "metadata": {
+    "name": "manual-upload-001"
+  },
   "spec": {
     "rawData": [ ... paste your inventory_payload.json array here ... ]
   }

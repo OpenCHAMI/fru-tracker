@@ -2,24 +2,26 @@
 //
 // SPDX-License-Identifier: MIT
 
-package device
+package v1
 
 import (
 	"context"
 	"encoding/json"
-	"github.com/openchami/fabrica/pkg/resource"
+	"github.com/openchami/fabrica/pkg/fabrica"
 )
 
 // Device represents a Device resource
 type Device struct {
-	resource.Resource
-	Spec   DeviceSpec   `json:"spec" validate:"required"`
-	Status DeviceStatus `json:"status,omitempty"`
+	APIVersion string           `json:"apiVersion"`
+	Kind       string           `json:"kind"`
+	Metadata   fabrica.Metadata `json:"metadata"`
+	Spec       DeviceSpec       `json:"spec" validate:"required"`
+	Status     DeviceStatus     `json:"status,omitempty"`
 }
 
 // DeviceSpec defines the desired state of Device
 type DeviceSpec struct {
-DeviceType   string `json:"deviceType" validate:"required"`
+	DeviceType   string `json:"deviceType" validate:"required"`
 	Manufacturer string `json:"manufacturer,omitempty"`
 	PartNumber   string `json:"partNumber,omitempty"`
 	SerialNumber string `json:"serialNumber" validate:"required"`
@@ -38,9 +40,9 @@ DeviceType   string `json:"deviceType" validate:"required"`
 
 // DeviceStatus defines the observed state of Device
 type DeviceStatus struct {
-	Phase      string `json:"phase,omitempty"`
-	Message    string `json:"message,omitempty"`
-	Ready      bool   `json:"ready"`
+	Phase             string   `json:"phase,omitempty"`
+	Message           string   `json:"message,omitempty"`
+	Ready             bool     `json:"ready"`
 	
 	// ChildrenDeviceIds is a read-only list of devices contained within this one.
 	ChildrenDeviceIds []string `json:"childrenDeviceIds,omitempty"`
@@ -48,14 +50,9 @@ type DeviceStatus struct {
 
 // Validate implements custom validation logic for Device
 func (r *Device) Validate(ctx context.Context) error {
-	// Add custom validation logic here
-	// Example:
-	// if r.Spec.Name == "forbidden" {
-	//     return errors.New("name 'forbidden' is not allowed")
-	// }
-
 	return nil
 }
+
 // GetKind returns the kind of the resource
 func (r *Device) GetKind() string {
 	return "Device"
@@ -69,9 +66,4 @@ func (r *Device) GetName() string {
 // GetUID returns the UID of the resource
 func (r *Device) GetUID() string {
 	return r.Metadata.UID
-}
-
-func init() {
-	// Register resource type prefix for storage
-	resource.RegisterResourcePrefix("Device", "dev")
 }

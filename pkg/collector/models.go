@@ -3,7 +3,7 @@ package collector
 import (
 	"net/http"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
+	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // --- Redfish Client Struct ---
@@ -22,9 +22,9 @@ type RedfishClient struct {
 // SystemInventory holds the discovered devices related to one System/Node.
 // It now holds the canonical DeviceSpec structs.
 type SystemInventory struct {
-	NodeSpec *device.DeviceSpec
-	CPUs     []*device.DeviceSpec
-	DIMMs    []*device.DeviceSpec
+	NodeSpec *v1.DeviceSpec
+	CPUs     []*v1.DeviceSpec
+	DIMMs    []*v1.DeviceSpec
 }
 
 // RedfishCollection defines the structure for Redfish collection responses.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/example/inventory-v3/pkg/collector"
+	"github.com/example/fru-tracker/pkg/collector"
 
 	"github.com/spf13/cobra"
 )

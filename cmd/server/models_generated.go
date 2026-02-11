@@ -37,47 +37,67 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
+	"github.com/openchami/fabrica/pkg/fabrica"
 
-	"github.com/example/inventory-v3/pkg/resources/discoverysnapshot"
+	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // DeviceResponse represents the response for Device operations
-type DeviceResponse = device.Device
+type DeviceResponse = v1.Device
 
 // CreateDeviceRequest represents a request to create a Device
 type CreateDeviceRequest struct {
-	device.DeviceSpec `json:",inline"`
-	Name              string            `json:"name" validate:"required"`
-	Labels            map[string]string `json:"labels,omitempty"`
-	Annotations       map[string]string `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata  `json:"metadata" validate:"required"`
+	Spec        v1.DeviceSpec     `json:"spec" validate:"required"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+// AsSpec converts the request fields to a spec object
+func (r *CreateDeviceRequest) AsSpec() v1.DeviceSpec {
+	return r.Spec
 }
 
 // UpdateDeviceRequest represents a request to update a Device
 type UpdateDeviceRequest struct {
-	device.DeviceSpec `json:",inline,omitempty"`
-	Name              string            `json:"name,omitempty"`
-	Labels            map[string]string `json:"labels,omitempty"`
-	Annotations       map[string]string `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata  `json:"metadata,omitempty"`
+	Spec        v1.DeviceSpec     `json:"spec,omitempty" validate:"omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+// AsSpec converts the request fields to a spec object
+func (r *UpdateDeviceRequest) AsSpec() v1.DeviceSpec {
+	return r.Spec
 }
 
 // DiscoverySnapshotResponse represents the response for DiscoverySnapshot operations
-type DiscoverySnapshotResponse = discoverysnapshot.DiscoverySnapshot
+type DiscoverySnapshotResponse = v1.DiscoverySnapshot
 
 // CreateDiscoverySnapshotRequest represents a request to create a DiscoverySnapshot
 type CreateDiscoverySnapshotRequest struct {
-	discoverysnapshot.DiscoverySnapshotSpec `json:",inline"`
-	Name                                    string            `json:"name" validate:"required"`
-	Labels                                  map[string]string `json:"labels,omitempty"`
-	Annotations                             map[string]string `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata         `json:"metadata" validate:"required"`
+	Spec        v1.DiscoverySnapshotSpec `json:"spec" validate:"required"`
+	Labels      map[string]string        `json:"labels,omitempty"`
+	Annotations map[string]string        `json:"annotations,omitempty"`
+}
+
+// AsSpec converts the request fields to a spec object
+func (r *CreateDiscoverySnapshotRequest) AsSpec() v1.DiscoverySnapshotSpec {
+	return r.Spec
 }
 
 // UpdateDiscoverySnapshotRequest represents a request to update a DiscoverySnapshot
 type UpdateDiscoverySnapshotRequest struct {
-	discoverysnapshot.DiscoverySnapshotSpec `json:",inline,omitempty"`
-	Name                                    string            `json:"name,omitempty"`
-	Labels                                  map[string]string `json:"labels,omitempty"`
-	Annotations                             map[string]string `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata         `json:"metadata,omitempty"`
+	Spec        v1.DiscoverySnapshotSpec `json:"spec,omitempty" validate:"omitempty"`
+	Labels      map[string]string        `json:"labels,omitempty"`
+	Annotations map[string]string        `json:"annotations,omitempty"`
+}
+
+// AsSpec converts the request fields to a spec object
+func (r *UpdateDiscoverySnapshotRequest) AsSpec() v1.DiscoverySnapshotSpec {
+	return r.Spec
 }
 
 // ErrorResponse represents an error response

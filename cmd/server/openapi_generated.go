@@ -23,8 +23,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
-	"github.com/example/inventory-v3/pkg/resources/discoverysnapshot"
+	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3gen"
 )
@@ -114,7 +113,7 @@ func GenerateOpenAPISpec() *openapi3.T {
 // registerDevicePaths registers OpenAPI paths for Device resources
 func registerDevicePaths(spec *openapi3.T) {
 	// Generate schemas from Go types - NO ANNOTATIONS NEEDED
-	resourceSchema, _ := openapi3gen.NewSchemaRefForValue(&device.Device{}, spec.Components.Schemas)
+	resourceSchema, _ := openapi3gen.NewSchemaRefForValue(&v1.Device{}, spec.Components.Schemas)
 	spec.Components.Schemas["Device"] = resourceSchema
 
 	createReqSchema, _ := openapi3gen.NewSchemaRefForValue(&CreateDeviceRequest{}, spec.Components.Schemas)
@@ -265,7 +264,7 @@ func registerDevicePaths(spec *openapi3.T) {
 // registerDiscoverySnapshotPaths registers OpenAPI paths for DiscoverySnapshot resources
 func registerDiscoverySnapshotPaths(spec *openapi3.T) {
 	// Generate schemas from Go types - NO ANNOTATIONS NEEDED
-	resourceSchema, _ := openapi3gen.NewSchemaRefForValue(&discoverysnapshot.DiscoverySnapshot{}, spec.Components.Schemas)
+	resourceSchema, _ := openapi3gen.NewSchemaRefForValue(&v1.DiscoverySnapshot{}, spec.Components.Schemas)
 	spec.Components.Schemas["DiscoverySnapshot"] = resourceSchema
 
 	createReqSchema, _ := openapi3gen.NewSchemaRefForValue(&CreateDiscoverySnapshotRequest{}, spec.Components.Schemas)

@@ -23,8 +23,7 @@ import (
 	"github.com/openchami/fabrica/pkg/reconcile"
 	fabricaStorage "github.com/openchami/fabrica/pkg/storage"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
-	"github.com/example/inventory-v3/pkg/resources/discoverysnapshot"
+	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // Backend is the storage backend used by all storage operations.
@@ -72,9 +71,9 @@ func ensureBackend() {
 //   - ctx: Context for cancellation and timeouts
 //
 // Returns:
-//   - []*device.Device: Slice of Device resources
+//   - []*v1.Device: Slice of Device resources
 //   - error: Any error that occurred during loading
-func LoadAllDevices(ctx context.Context) ([]*device.Device, error) {
+func LoadAllDevices(ctx context.Context) ([]*v1.Device, error) {
 	ensureBackend()
 
 	rawData, err := Backend.LoadAll(ctx, "Device")
@@ -82,9 +81,9 @@ func LoadAllDevices(ctx context.Context) ([]*device.Device, error) {
 		return nil, fmt.Errorf("failed to load all devices: %w", err)
 	}
 
-	devices := make([]*device.Device, 0, len(rawData))
+	devices := make([]*v1.Device, 0, len(rawData))
 	for _, raw := range rawData {
-		device := &device.Device{}
+		device := &v1.Device{}
 		if err := json.Unmarshal(raw, device); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal Device: %w", err)
 		}
@@ -101,9 +100,9 @@ func LoadAllDevices(ctx context.Context) ([]*device.Device, error) {
 //   - uid: Unique identifier of the Device resource
 //
 // Returns:
-//   - *device.Device: The Device resource
+//   - *v1.Device: The Device resource
 //   - error: fabricaStorage.ErrNotFound if resource doesn't exist, other errors for failures
-func LoadDevice(ctx context.Context, uid string) (*device.Device, error) {
+func LoadDevice(ctx context.Context, uid string) (*v1.Device, error) {
 	ensureBackend()
 
 	rawData, err := Backend.Load(ctx, "Device", uid)
@@ -111,7 +110,7 @@ func LoadDevice(ctx context.Context, uid string) (*device.Device, error) {
 		return nil, fmt.Errorf("failed to load Device %s: %w", uid, err)
 	}
 
-	device := &device.Device{}
+	device := &v1.Device{}
 	if err := json.Unmarshal(rawData, device); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Device: %w", err)
 	}
@@ -127,7 +126,7 @@ func LoadDevice(ctx context.Context, uid string) (*device.Device, error) {
 //
 // Returns:
 //   - error: Any error that occurred during saving
-func SaveDevice(ctx context.Context, device *device.Device) error {
+func SaveDevice(ctx context.Context, device *v1.Device) error {
 	ensureBackend()
 
 	data, err := json.Marshal(device)
@@ -150,7 +149,7 @@ func SaveDevice(ctx context.Context, device *device.Device) error {
 //
 // Returns:
 //   - error: fabricaStorage.ErrNotFound if resource doesn't exist, other errors for failures
-func UpdateDevice(ctx context.Context, device *device.Device) error {
+func UpdateDevice(ctx context.Context, device *v1.Device) error {
 	ensureBackend()
 
 	// Check if resource exists first
@@ -239,9 +238,9 @@ func ListDeviceUIDs(ctx context.Context) ([]string, error) {
 //   - ctx: Context for cancellation and timeouts
 //
 // Returns:
-//   - []*discoverysnapshot.DiscoverySnapshot: Slice of DiscoverySnapshot resources
+//   - []*v1.DiscoverySnapshot: Slice of DiscoverySnapshot resources
 //   - error: Any error that occurred during loading
-func LoadAllDiscoverySnapshots(ctx context.Context) ([]*discoverysnapshot.DiscoverySnapshot, error) {
+func LoadAllDiscoverySnapshots(ctx context.Context) ([]*v1.DiscoverySnapshot, error) {
 	ensureBackend()
 
 	rawData, err := Backend.LoadAll(ctx, "DiscoverySnapshot")
@@ -249,9 +248,9 @@ func LoadAllDiscoverySnapshots(ctx context.Context) ([]*discoverysnapshot.Discov
 		return nil, fmt.Errorf("failed to load all discoverysnapshots: %w", err)
 	}
 
-	discoverysnapshots := make([]*discoverysnapshot.DiscoverySnapshot, 0, len(rawData))
+	discoverysnapshots := make([]*v1.DiscoverySnapshot, 0, len(rawData))
 	for _, raw := range rawData {
-		discoverySnapshot := &discoverysnapshot.DiscoverySnapshot{}
+		discoverySnapshot := &v1.DiscoverySnapshot{}
 		if err := json.Unmarshal(raw, discoverySnapshot); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal DiscoverySnapshot: %w", err)
 		}
@@ -268,9 +267,9 @@ func LoadAllDiscoverySnapshots(ctx context.Context) ([]*discoverysnapshot.Discov
 //   - uid: Unique identifier of the DiscoverySnapshot resource
 //
 // Returns:
-//   - *discoverysnapshot.DiscoverySnapshot: The DiscoverySnapshot resource
+//   - *v1.DiscoverySnapshot: The DiscoverySnapshot resource
 //   - error: fabricaStorage.ErrNotFound if resource doesn't exist, other errors for failures
-func LoadDiscoverySnapshot(ctx context.Context, uid string) (*discoverysnapshot.DiscoverySnapshot, error) {
+func LoadDiscoverySnapshot(ctx context.Context, uid string) (*v1.DiscoverySnapshot, error) {
 	ensureBackend()
 
 	rawData, err := Backend.Load(ctx, "DiscoverySnapshot", uid)
@@ -278,7 +277,7 @@ func LoadDiscoverySnapshot(ctx context.Context, uid string) (*discoverysnapshot.
 		return nil, fmt.Errorf("failed to load DiscoverySnapshot %s: %w", uid, err)
 	}
 
-	discoverySnapshot := &discoverysnapshot.DiscoverySnapshot{}
+	discoverySnapshot := &v1.DiscoverySnapshot{}
 	if err := json.Unmarshal(rawData, discoverySnapshot); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal DiscoverySnapshot: %w", err)
 	}
@@ -294,7 +293,7 @@ func LoadDiscoverySnapshot(ctx context.Context, uid string) (*discoverysnapshot.
 //
 // Returns:
 //   - error: Any error that occurred during saving
-func SaveDiscoverySnapshot(ctx context.Context, discoverySnapshot *discoverysnapshot.DiscoverySnapshot) error {
+func SaveDiscoverySnapshot(ctx context.Context, discoverySnapshot *v1.DiscoverySnapshot) error {
 	ensureBackend()
 
 	data, err := json.Marshal(discoverySnapshot)
@@ -317,7 +316,7 @@ func SaveDiscoverySnapshot(ctx context.Context, discoverySnapshot *discoverysnap
 //
 // Returns:
 //   - error: fabricaStorage.ErrNotFound if resource doesn't exist, other errors for failures
-func UpdateDiscoverySnapshot(ctx context.Context, discoverySnapshot *discoverysnapshot.DiscoverySnapshot) error {
+func UpdateDiscoverySnapshot(ctx context.Context, discoverySnapshot *v1.DiscoverySnapshot) error {
 	ensureBackend()
 
 	// Check if resource exists first
@@ -442,13 +441,13 @@ func (c *StorageClient) Get(ctx context.Context, kind, uid string) (interface{},
 	// Unmarshal based on kind
 	switch kind {
 	case "Device":
-		var resource device.Device
+		var resource v1.Device
 		if err := json.Unmarshal(rawData, &resource); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal Device: %w", err)
 		}
 		return &resource, nil
 	case "DiscoverySnapshot":
-		var resource discoverysnapshot.DiscoverySnapshot
+		var resource v1.DiscoverySnapshot
 		if err := json.Unmarshal(rawData, &resource); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal DiscoverySnapshot: %w", err)
 		}
@@ -478,7 +477,7 @@ func (c *StorageClient) List(ctx context.Context, kind string) ([]interface{}, e
 	case "Device":
 		result := make([]interface{}, 0, len(rawData))
 		for _, raw := range rawData {
-			var resource device.Device
+			var resource v1.Device
 			if err := json.Unmarshal(raw, &resource); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal Device: %w", err)
 			}
@@ -488,7 +487,7 @@ func (c *StorageClient) List(ctx context.Context, kind string) ([]interface{}, e
 	case "DiscoverySnapshot":
 		result := make([]interface{}, 0, len(rawData))
 		for _, raw := range rawData {
-			var resource discoverysnapshot.DiscoverySnapshot
+			var resource v1.DiscoverySnapshot
 			if err := json.Unmarshal(raw, &resource); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal DiscoverySnapshot: %w", err)
 			}
@@ -516,9 +515,9 @@ func (c *StorageClient) Update(ctx context.Context, resource interface{}) error 
 
 	// Extract kind and UID based on type
 	switch res := resource.(type) {
-	case *device.Device:
+	case *v1.Device:
 		return c.backend.Save(ctx, "Device", res.Metadata.UID, data)
-	case *discoverysnapshot.DiscoverySnapshot:
+	case *v1.DiscoverySnapshot:
 		return c.backend.Save(ctx, "DiscoverySnapshot", res.Metadata.UID, data)
 	default:
 		return fmt.Errorf("unknown resource type: %T", resource)

@@ -61,8 +61,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
-	"github.com/example/inventory-v3/pkg/resources/discoverysnapshot"
+	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // Client provides access to the inventory API
@@ -212,8 +211,8 @@ func (c *Client) doPatchRequest(ctx context.Context, endpoint string, patchData 
 }
 
 // GetDevices retrieves all devices
-func (c *Client) GetDevices(ctx context.Context) ([]device.Device, error) {
-	var response []device.Device
+func (c *Client) GetDevices(ctx context.Context) ([]v1.Device, error) {
+	var response []v1.Device
 	if err := c.doRequest(ctx, "GET", "/devices", nil, &response); err != nil {
 		return nil, err
 	}
@@ -221,8 +220,8 @@ func (c *Client) GetDevices(ctx context.Context) ([]device.Device, error) {
 }
 
 // GetDevice retrieves a specific Device by UID
-func (c *Client) GetDevice(ctx context.Context, uid string) (*device.Device, error) {
-	var result device.Device
+func (c *Client) GetDevice(ctx context.Context, uid string) (*v1.Device, error) {
+	var result v1.Device
 	endpoint := fmt.Sprintf("/devices/%s", uid)
 	if err := c.doRequest(ctx, "GET", endpoint, nil, &result); err != nil {
 		return nil, err
@@ -231,8 +230,8 @@ func (c *Client) GetDevice(ctx context.Context, uid string) (*device.Device, err
 }
 
 // CreateDevice creates a new Device
-func (c *Client) CreateDevice(ctx context.Context, req CreateDeviceRequest) (*device.Device, error) {
-	var result device.Device
+func (c *Client) CreateDevice(ctx context.Context, req CreateDeviceRequest) (*v1.Device, error) {
+	var result v1.Device
 	if err := c.doRequest(ctx, "POST", "/devices", req, &result); err != nil {
 		return nil, err
 	}
@@ -240,8 +239,8 @@ func (c *Client) CreateDevice(ctx context.Context, req CreateDeviceRequest) (*de
 }
 
 // UpdateDevice updates an existing Device
-func (c *Client) UpdateDevice(ctx context.Context, uid string, req UpdateDeviceRequest) (*device.Device, error) {
-	var result device.Device
+func (c *Client) UpdateDevice(ctx context.Context, uid string, req UpdateDeviceRequest) (*v1.Device, error) {
+	var result v1.Device
 	endpoint := fmt.Sprintf("/devices/%s", uid)
 	if err := c.doRequest(ctx, "PUT", endpoint, req, &result); err != nil {
 		return nil, err
@@ -250,8 +249,8 @@ func (c *Client) UpdateDevice(ctx context.Context, uid string, req UpdateDeviceR
 }
 
 // PatchDevice patches an existing Device spec with the specified patch data and content type
-func (c *Client) PatchDevice(ctx context.Context, uid string, patchData []byte, contentType string) (*device.Device, error) {
-	var result device.Device
+func (c *Client) PatchDevice(ctx context.Context, uid string, patchData []byte, contentType string) (*v1.Device, error) {
+	var result v1.Device
 	endpoint := fmt.Sprintf("/devices/%s", uid)
 	if err := c.doPatchRequest(ctx, endpoint, patchData, contentType, &result); err != nil {
 		return nil, err
@@ -262,8 +261,8 @@ func (c *Client) PatchDevice(ctx context.Context, uid string, patchData []byte, 
 // UpdateDeviceStatus updates only the status of an existing Device
 // This method is intended for controllers, reconcilers, and monitoring systems.
 // It preserves the spec and only updates the status portion of the resource.
-func (c *Client) UpdateDeviceStatus(ctx context.Context, uid string, status device.DeviceStatus) (*device.Device, error) {
-	var result device.Device
+func (c *Client) UpdateDeviceStatus(ctx context.Context, uid string, status v1.DeviceStatus) (*v1.Device, error) {
+	var result v1.Device
 	endpoint := fmt.Sprintf("/devices/%s/status", uid)
 	if err := c.doRequest(ctx, "PUT", endpoint, status, &result); err != nil {
 		return nil, err
@@ -273,14 +272,14 @@ func (c *Client) UpdateDeviceStatus(ctx context.Context, uid string, status devi
 
 // PatchDeviceStatus patches only the status of an existing Device
 // Supports JSON Merge Patch by default. Use PatchDeviceStatusWithType for other patch formats.
-func (c *Client) PatchDeviceStatus(ctx context.Context, uid string, patchData []byte) (*device.Device, error) {
+func (c *Client) PatchDeviceStatus(ctx context.Context, uid string, patchData []byte) (*v1.Device, error) {
 	return c.PatchDeviceStatusWithType(ctx, uid, patchData, "application/merge-patch+json")
 }
 
 // PatchDeviceStatusWithType patches status with a specific patch content type
 // Supported types: application/merge-patch+json, application/json-patch+json, application/fabrica-patch+json
-func (c *Client) PatchDeviceStatusWithType(ctx context.Context, uid string, patchData []byte, contentType string) (*device.Device, error) {
-	var result device.Device
+func (c *Client) PatchDeviceStatusWithType(ctx context.Context, uid string, patchData []byte, contentType string) (*v1.Device, error) {
+	var result v1.Device
 	endpoint := fmt.Sprintf("/devices/%s/status", uid)
 	if err := c.doPatchRequest(ctx, endpoint, patchData, contentType, &result); err != nil {
 		return nil, err
@@ -299,8 +298,8 @@ func (c *Client) DeleteDevice(ctx context.Context, uid string) error {
 }
 
 // GetDiscoverySnapshots retrieves all discoverysnapshots
-func (c *Client) GetDiscoverySnapshots(ctx context.Context) ([]discoverysnapshot.DiscoverySnapshot, error) {
-	var response []discoverysnapshot.DiscoverySnapshot
+func (c *Client) GetDiscoverySnapshots(ctx context.Context) ([]v1.DiscoverySnapshot, error) {
+	var response []v1.DiscoverySnapshot
 	if err := c.doRequest(ctx, "GET", "/discoverysnapshots", nil, &response); err != nil {
 		return nil, err
 	}
@@ -308,8 +307,8 @@ func (c *Client) GetDiscoverySnapshots(ctx context.Context) ([]discoverysnapshot
 }
 
 // GetDiscoverySnapshot retrieves a specific DiscoverySnapshot by UID
-func (c *Client) GetDiscoverySnapshot(ctx context.Context, uid string) (*discoverysnapshot.DiscoverySnapshot, error) {
-	var result discoverysnapshot.DiscoverySnapshot
+func (c *Client) GetDiscoverySnapshot(ctx context.Context, uid string) (*v1.DiscoverySnapshot, error) {
+	var result v1.DiscoverySnapshot
 	endpoint := fmt.Sprintf("/discoverysnapshots/%s", uid)
 	if err := c.doRequest(ctx, "GET", endpoint, nil, &result); err != nil {
 		return nil, err
@@ -318,8 +317,8 @@ func (c *Client) GetDiscoverySnapshot(ctx context.Context, uid string) (*discove
 }
 
 // CreateDiscoverySnapshot creates a new DiscoverySnapshot
-func (c *Client) CreateDiscoverySnapshot(ctx context.Context, req CreateDiscoverySnapshotRequest) (*discoverysnapshot.DiscoverySnapshot, error) {
-	var result discoverysnapshot.DiscoverySnapshot
+func (c *Client) CreateDiscoverySnapshot(ctx context.Context, req CreateDiscoverySnapshotRequest) (*v1.DiscoverySnapshot, error) {
+	var result v1.DiscoverySnapshot
 	if err := c.doRequest(ctx, "POST", "/discoverysnapshots", req, &result); err != nil {
 		return nil, err
 	}
@@ -327,8 +326,8 @@ func (c *Client) CreateDiscoverySnapshot(ctx context.Context, req CreateDiscover
 }
 
 // UpdateDiscoverySnapshot updates an existing DiscoverySnapshot
-func (c *Client) UpdateDiscoverySnapshot(ctx context.Context, uid string, req UpdateDiscoverySnapshotRequest) (*discoverysnapshot.DiscoverySnapshot, error) {
-	var result discoverysnapshot.DiscoverySnapshot
+func (c *Client) UpdateDiscoverySnapshot(ctx context.Context, uid string, req UpdateDiscoverySnapshotRequest) (*v1.DiscoverySnapshot, error) {
+	var result v1.DiscoverySnapshot
 	endpoint := fmt.Sprintf("/discoverysnapshots/%s", uid)
 	if err := c.doRequest(ctx, "PUT", endpoint, req, &result); err != nil {
 		return nil, err
@@ -337,8 +336,8 @@ func (c *Client) UpdateDiscoverySnapshot(ctx context.Context, uid string, req Up
 }
 
 // PatchDiscoverySnapshot patches an existing DiscoverySnapshot spec with the specified patch data and content type
-func (c *Client) PatchDiscoverySnapshot(ctx context.Context, uid string, patchData []byte, contentType string) (*discoverysnapshot.DiscoverySnapshot, error) {
-	var result discoverysnapshot.DiscoverySnapshot
+func (c *Client) PatchDiscoverySnapshot(ctx context.Context, uid string, patchData []byte, contentType string) (*v1.DiscoverySnapshot, error) {
+	var result v1.DiscoverySnapshot
 	endpoint := fmt.Sprintf("/discoverysnapshots/%s", uid)
 	if err := c.doPatchRequest(ctx, endpoint, patchData, contentType, &result); err != nil {
 		return nil, err
@@ -349,8 +348,8 @@ func (c *Client) PatchDiscoverySnapshot(ctx context.Context, uid string, patchDa
 // UpdateDiscoverySnapshotStatus updates only the status of an existing DiscoverySnapshot
 // This method is intended for controllers, reconcilers, and monitoring systems.
 // It preserves the spec and only updates the status portion of the resource.
-func (c *Client) UpdateDiscoverySnapshotStatus(ctx context.Context, uid string, status discoverysnapshot.DiscoverySnapshotStatus) (*discoverysnapshot.DiscoverySnapshot, error) {
-	var result discoverysnapshot.DiscoverySnapshot
+func (c *Client) UpdateDiscoverySnapshotStatus(ctx context.Context, uid string, status v1.DiscoverySnapshotStatus) (*v1.DiscoverySnapshot, error) {
+	var result v1.DiscoverySnapshot
 	endpoint := fmt.Sprintf("/discoverysnapshots/%s/status", uid)
 	if err := c.doRequest(ctx, "PUT", endpoint, status, &result); err != nil {
 		return nil, err
@@ -360,14 +359,14 @@ func (c *Client) UpdateDiscoverySnapshotStatus(ctx context.Context, uid string, 
 
 // PatchDiscoverySnapshotStatus patches only the status of an existing DiscoverySnapshot
 // Supports JSON Merge Patch by default. Use PatchDiscoverySnapshotStatusWithType for other patch formats.
-func (c *Client) PatchDiscoverySnapshotStatus(ctx context.Context, uid string, patchData []byte) (*discoverysnapshot.DiscoverySnapshot, error) {
+func (c *Client) PatchDiscoverySnapshotStatus(ctx context.Context, uid string, patchData []byte) (*v1.DiscoverySnapshot, error) {
 	return c.PatchDiscoverySnapshotStatusWithType(ctx, uid, patchData, "application/merge-patch+json")
 }
 
 // PatchDiscoverySnapshotStatusWithType patches status with a specific patch content type
 // Supported types: application/merge-patch+json, application/json-patch+json, application/fabrica-patch+json
-func (c *Client) PatchDiscoverySnapshotStatusWithType(ctx context.Context, uid string, patchData []byte, contentType string) (*discoverysnapshot.DiscoverySnapshot, error) {
-	var result discoverysnapshot.DiscoverySnapshot
+func (c *Client) PatchDiscoverySnapshotStatusWithType(ctx context.Context, uid string, patchData []byte, contentType string) (*v1.DiscoverySnapshot, error) {
+	var result v1.DiscoverySnapshot
 	endpoint := fmt.Sprintf("/discoverysnapshots/%s/status", uid)
 	if err := c.doPatchRequest(ctx, endpoint, patchData, contentType, &result); err != nil {
 		return nil, err

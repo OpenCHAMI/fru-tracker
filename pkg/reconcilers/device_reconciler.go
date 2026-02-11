@@ -9,7 +9,7 @@ package reconcilers
 import (
 	"context"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
+	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // reconcileDevice contains custom reconciliation logic.
@@ -44,7 +44,7 @@ import (
 //
 // Returns:
 //   - error: If reconciliation failed (will trigger retry with backoff)
-func (r *DeviceReconciler) reconcileDevice(ctx context.Context, res *device.Device) error {
+func (r *DeviceReconciler) reconcileDevice(ctx context.Context, res *v1.Device) error {
 	// TODO: Implement Device-specific reconciliation logic
 	//
 	// Example:
