@@ -3,7 +3,7 @@ package collector
 import (
 	"net/http"
 
-	"github.com/example/inventory-v3/pkg/resources/device"
+	"github.com/example/fru-tracker/pkg/resources/device"
 )
 
 // --- Redfish Client Struct ---
