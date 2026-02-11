@@ -6,42 +6,36 @@ package v1
 
 import (
 	"context"
-	"github.com/openchami/fabrica/pkg/fabrica"
+	"encoding/json"
+	"github.com/openchami/fabrica/pkg/resource"
 )
 
-// DiscoverySnapshot represents a discoverysnapshot resource
+// DiscoverySnapshot represents a DiscoverySnapshot resource
 type DiscoverySnapshot struct {
-	APIVersion string           `json:"apiVersion"`
-	Kind       string           `json:"kind"`
-	Metadata   fabrica.Metadata `json:"metadata"`
-	Spec       DiscoverySnapshotSpec   `json:"spec" validate:"required"`
-	Status     DiscoverySnapshotStatus `json:"status,omitempty"`
+	resource.Resource
+	Spec   DiscoverySnapshotSpec   `json:"spec" validate:"required"`
+	Status DiscoverySnapshotStatus `json:"status,omitempty"`
 }
 
 // DiscoverySnapshotSpec defines the desired state of DiscoverySnapshot
 type DiscoverySnapshotSpec struct {
-	Description string `json:"description,omitempty" validate:"max=200"`
-	// Add your spec fields here
+	// RawData holds the complete, raw JSON payload from a discovery tool (e.g., the collector).
+	// The reconciler will parse this.
+	RawData json.RawMessage `json:"rawData" validate:"required"`
 }
 
 // DiscoverySnapshotStatus defines the observed state of DiscoverySnapshot
 type DiscoverySnapshotStatus struct {
-	Phase      string `json:"phase,omitempty"`
-	Message    string `json:"message,omitempty"`
-	Ready      bool   `json:"ready"`
-		// Add your status fields here
+	Phase   string `json:"phase,omitempty"`
+	Message string `json:"message,omitempty"`
+	Ready   bool   `json:"ready"`
 }
 
 // Validate implements custom validation logic for DiscoverySnapshot
 func (r *DiscoverySnapshot) Validate(ctx context.Context) error {
-	// Add custom validation logic here
-	// Example:
-	// if r.Spec.Description == "forbidden" {
-	//     return errors.New("description 'forbidden' is not allowed")
-	// }
-
 	return nil
 }
+
 // GetKind returns the kind of the resource
 func (r *DiscoverySnapshot) GetKind() string {
 	return "DiscoverySnapshot"
@@ -57,5 +51,7 @@ func (r *DiscoverySnapshot) GetUID() string {
 	return r.Metadata.UID
 }
 
-// IsHub marks this as the hub/storage version
-func (r *DiscoverySnapshot) IsHub() {}
+func init() {
+	// Register resource type prefix for storage
+	resource.RegisterResourcePrefix("DiscoverySnapshot", "dis")
+}
