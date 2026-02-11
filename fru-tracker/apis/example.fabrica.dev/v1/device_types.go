@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/openchami/fabrica/pkg/fabrica"
-	"github.com/openchami/fabrica/pkg/resource"
 )
 
 // Device represents a Device resource
@@ -67,9 +66,4 @@ func (r *Device) GetName() string {
 // GetUID returns the UID of the resource
 func (r *Device) GetUID() string {
 	return r.Metadata.UID
-}
-
-func init() {
-	// Register resource type prefix for storage
-	resource.RegisterResourcePrefix("Device", "dev")
 }

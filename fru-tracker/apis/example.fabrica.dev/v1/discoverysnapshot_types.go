@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/openchami/fabrica/pkg/fabrica"
-	"github.com/openchami/fabrica/pkg/resource"
 )
 
 // DiscoverySnapshot represents a DiscoverySnapshot resource
@@ -52,9 +51,4 @@ func (r *DiscoverySnapshot) GetName() string {
 // GetUID returns the UID of the resource
 func (r *DiscoverySnapshot) GetUID() string {
 	return r.Metadata.UID
-}
-
-func init() {
-	// Register resource type prefix for storage
-	resource.RegisterResourcePrefix("DiscoverySnapshot", "dis")
 }
