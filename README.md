@@ -41,6 +41,17 @@ The current implementation has been validated with an end-to-end workflow using 
     * **Pass 2 (Relationship Linking):** The reconciler evaluates the `parentSerialNumber` provided by the collector, identifies the corresponding parent device in the database, and updates the child device's `parentID` with the appropriate UUID.
 * **Storage Backend:** Validated using the local file storage backend for persisting resources.
 
+### Future Work
+
+While the core event-driven ingestion pipeline is functional, several enhancements are planned to make `fru-tracker` production-ready:
+
+* **Production Storage Backend:** Migrate testing and deployment documentation from the local `file` storage backend to a robust relational database (e.g., SMD using Fabrica's `ent` backend option).
+* **Hardware Removal Handling:** Enhance the `DiscoverySnapshotReconciler` to detect missing components. If a previously tracked child device is absent from a new snapshot, the reconciler should update the existing `Device` record to mark it as removed, offline, or inactive.
+* **Event Delta Consumer:** Build a reference implementation of an event subscriber. This service will listen to the message bus for `fru-tracker.resource.device.updated` and `deleted` events to generate human-readable changelogs and trigger alerts.
+* **Collector Enhancements:** * Expand the reference Redfish collector to support additional component types (e.g., Drives, PowerSupplies, NetworkAdapters).
+    * Implement secure credential management for the collector (replacing hardcoded BMC credentials).
+    * Develop examples of non-Redfish collectors (e.g., an OS-level script using `dmidecode` or `lshw`).
+
 ### Device Data Model
 All hardware data is stored in the `spec` field, representing the observed state from the last snapshot.
 
