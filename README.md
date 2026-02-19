@@ -10,6 +10,118 @@ Unlike a simple CRUD API, this service is designed to be populated by a collecto
 4.  The reconciler performs a "get-or-create" for each `Device` in the payload, using the **Redfish URI** as the unique key (to handle components without serial numbers).
 5.  A two-pass system ensures that after all devices are created, parent/child relationships are linked by resolving the `parentSerialNumber` (from the collector) to the `parentID` (the parent's UUID in the database).
 
+## What Can You Do To Work With This Today?
+
+You can run the service locally and simulate a hardware discovery event to see the event-driven reconciliation in action. This requires no actual hardware or background knowledge of the system.
+
+### 1. Start the Server
+Open a terminal and start the API server:
+
+```bash
+go mod tidy
+go run ./cmd/server serve
+```
+
+*What is happening:* The server initializes the local file database, starts the internal event bus, and spins up the background reconciliation workers. It is now listening for requests on `http://localhost:8080`.
+
+### 2. Simulate a Hardware Discovery
+Open a **second** terminal. Create a file named `upload_request.json` containing a mock payload with a Node and a DIMM:
+
+```bash
+cat << 'EOF' > upload_request.json
+{
+  "apiVersion": "example.fabrica.dev/v1",
+  "kind": "DiscoverySnapshot",
+  "metadata": {
+    "name": "manual-snapshot-01"
+  },
+  "spec": {
+    "rawData": [
+      {
+        "deviceType": "Node",
+        "serialNumber": "NODE12345",
+        "manufacturer": "Intel",
+        "properties": {
+          "redfish_uri": "/Systems/NODE12345"
+        }
+      },
+      {
+        "deviceType": "DIMM",
+        "partNumber": "16GB-DDR4",
+        "serialNumber": "DIMM67890",
+        "parentSerialNumber": "NODE12345",
+        "properties": {
+          "redfish_uri": "/Systems/NODE12345/Memory/1"
+        }
+      }
+    ]
+  }
+}
+EOF
+```
+
+Post this payload to the server:
+
+```bash
+curl -X POST http://localhost:8080/discoverysnapshots \
+  -H "Content-Type: application/json" \
+  -d @upload_request.json
+```
+
+*What is happening:* You are acting as the collector. The server accepts the snapshot and publishes a `created` event. The reconciler catches this event and processes the payload in the background, creating the two devices and linking the DIMM to the Node.
+
+### 3. Verify the Results
+Retrieve the parsed devices from the API to see the results of the reconciliation:
+
+```bash
+curl -s http://localhost:8080/devices
+```
+
+*What is happening:* The output will show the two distinct `Device` resources. If you look at the `spec` for the DIMM, you will see that the `parentID` field has been automatically populated with the specific UUID of the Node, proving that the two-pass reconciler successfully executed.
+
+### Intended Use Cases
+
+The primary use case for `fru-tracker` is tracking hardware state changes over time using an event-driven architecture. 
+
+Instead of requiring clients to manually compute diffs between raw hardware snapshots, the system provides a workflow for detecting hardware modifications (e.g., a DIMM replacement or CPU swap):
+
+1. **Initial Collection:** A collector pushes an initial `DiscoverySnapshot` containing the baseline hardware state. The reconciler parses this payload and populates the database with individual `Device` resources.
+2. **Hardware Modification:** A physical or configuration change occurs on the target machine.
+3. **Subsequent Collection:** The collector pushes a new `DiscoverySnapshot` reflecting the current state.
+4. **Event-Driven Delta Tracking:** During the reconciliation process, the system identifies differences between the newly observed state and the existing database state. For any modified component, the reconciler updates the corresponding `Device` record and automatically emits a `fru-tracker.resource.device.updated` event over the message bus. 
+5. **Downstream Consumption:** External services or scripts can subscribe to this event stream to log the delta, trigger inventory alerts, or update external dashboards in real-time without needing to parse the raw snapshots.
+
+#### Collector Integration
+
+The `fru-tracker` service is designed to be passive and agnostic to the specific hardware management protocols used in a data center. It expects users to deploy their own collectors tailored to their environment, collecting only information useful to each site. 
+
+To integrate a custom collector, the collector simply needs to gather the hardware state, format it as a JSON array of device specifications, and `POST` it to the `/discoverysnapshots` endpoint. 
+
+A reference implementation of a Redfish-based collector is provided in `cmd/collector` to demonstrate this interaction and serve as a starting point for development. Also, see below for a sample payload.
+
+### Current Capabilities
+
+The current implementation has been validated with an end-to-end workflow using the provided Redfish collector and the event-driven reconciliation controller.
+
+* **Redfish Discovery Collector (`cmd/collector`):** Capable of authenticating with a BMC, walking the Redfish `/Systems` tree, and extracting hardware data for Nodes, Processors (CPUs), and Memory (DIMMs). It packages this data into a `DiscoverySnapshot` payload and posts it to the API.
+* **Event-Driven Triggering:** The server publishes a `fru-tracker.resource.discoverysnapshot.created` event upon receiving a snapshot, which reliably triggers the background reconciler.
+* **Two-Pass Reconciliation:** 
+    * **Pass 1 (Ingestion):** The reconciler parses the raw JSON payload and performs a get-or-create operation for each device, utilizing the `redfish_uri` from the properties map as a unique primary key.
+    * **Pass 2 (Relationship Linking):** The reconciler evaluates the `parentSerialNumber` provided by the collector, identifies the corresponding parent device in the database, and updates the child device's `parentID` with the appropriate UUID.
+* **Storage Backend:** Validated using the local file storage backend for persisting resources.
+
+### Future Work
+
+While the core event-driven ingestion pipeline is functional, several enhancements are planned to make `fru-tracker` production-ready:
+
+* **Production Storage Backend:** Migrate testing and deployment documentation from the local `file` storage backend to a robust relational database (e.g., SMD using Fabrica's `ent` backend option).
+* **Hardware Removal Handling:** Enhance the `DiscoverySnapshotReconciler` to detect missing components. If a previously tracked child device is absent from a new snapshot, the reconciler should update the existing `Device` record to mark it as removed, offline, or inactive.
+* **Event Delta Consumer:** Build a reference implementation of an event subscriber. This service will listen to the message bus for `fru-tracker.resource.device.updated` and `deleted` events to generate human-readable changelogs and trigger alerts.
+* **Collector Enhancements:** * Expand the reference Redfish collector to support additional component types (e.g., Drives, PowerSupplies, NetworkAdapters).
+    * Implement secure credential management for the collector (replacing hardcoded BMC credentials).
+    * Develop examples of non-Redfish collectors (e.g., an OS-level script using `dmidecode` or `lshw`).
+* **CI/CD and Release Pipeline:** Implement a formal build and release process (utilizing `Make`, `GoReleaser`, and GitHub Actions) aligned with the OpenCHAMI ecosystem.
+
 ### Device Data Model
 All hardware data is stored in the `spec` field, representing the observed state from the last snapshot.
 
