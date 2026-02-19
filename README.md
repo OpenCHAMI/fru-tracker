@@ -10,6 +10,75 @@ Unlike a simple CRUD API, this service is designed to be populated by a collecto
 4.  The reconciler performs a "get-or-create" for each `Device` in the payload, using the **Redfish URI** as the unique key (to handle components without serial numbers).
 5.  A two-pass system ensures that after all devices are created, parent/child relationships are linked by resolving the `parentSerialNumber` (from the collector) to the `parentID` (the parent's UUID in the database).
 
+## What Can You Do To Work With This Today?
+
+You can run the service locally and simulate a hardware discovery event to see the event-driven reconciliation in action. This requires no actual hardware or background knowledge of the system.
+
+### 1. Start the Server
+Open a terminal and start the API server:
+
+```bash
+go mod tidy
+go run ./cmd/server serve
+```
+
+*What is happening:* The server initializes the local file database, starts the internal event bus, and spins up the background reconciliation workers. It is now listening for requests on `http://localhost:8080`.
+
+### 2. Simulate a Hardware Discovery
+Open a **second** terminal. Create a file named `upload_request.json` containing a mock payload with a Node and a DIMM:
+
+```bash
+cat << 'EOF' > upload_request.json
+{
+  "apiVersion": "example.fabrica.dev/v1",
+  "kind": "DiscoverySnapshot",
+  "metadata": {
+    "name": "manual-snapshot-01"
+  },
+  "spec": {
+    "rawData": [
+      {
+        "deviceType": "Node",
+        "serialNumber": "NODE12345",
+        "manufacturer": "Intel",
+        "properties": {
+          "redfish_uri": "/Systems/NODE12345"
+        }
+      },
+      {
+        "deviceType": "DIMM",
+        "partNumber": "16GB-DDR4",
+        "serialNumber": "DIMM67890",
+        "parentSerialNumber": "NODE12345",
+        "properties": {
+          "redfish_uri": "/Systems/NODE12345/Memory/1"
+        }
+      }
+    ]
+  }
+}
+EOF
+```
+
+Post this payload to the server:
+
+```bash
+curl -X POST http://localhost:8080/discoverysnapshots \
+  -H "Content-Type: application/json" \
+  -d @upload_request.json
+```
+
+*What is happening:* You are acting as the collector. The server accepts the snapshot and publishes a `created` event. The reconciler catches this event and processes the payload in the background, creating the two devices and linking the DIMM to the Node.
+
+### 3. Verify the Results
+Retrieve the parsed devices from the API to see the results of the reconciliation:
+
+```bash
+curl -s http://localhost:8080/devices
+```
+
+*What is happening:* The output will show the two distinct `Device` resources. If you look at the `spec` for the DIMM, you will see that the `parentID` field has been automatically populated with the specific UUID of the Node, proving that the two-pass reconciler successfully executed.
+
 ### Intended Use Cases
 
 The primary use case for `fru-tracker` is tracking hardware state changes over time using an event-driven architecture. 
