@@ -120,6 +120,7 @@ While the core event-driven ingestion pipeline is functional, several enhancemen
 * **Collector Enhancements:** * Expand the reference Redfish collector to support additional component types (e.g., Drives, PowerSupplies, NetworkAdapters).
     * Implement secure credential management for the collector (replacing hardcoded BMC credentials).
     * Develop examples of non-Redfish collectors (e.g., an OS-level script using `dmidecode` or `lshw`).
+* **CI/CD and Release Pipeline:** Implement a formal build and release process (utilizing `Make`, `GoReleaser`, and GitHub Actions) aligned with the OpenCHAMI ecosystem.
 
 ### Device Data Model
 All hardware data is stored in the `spec` field, representing the observed state from the last snapshot.
