@@ -10,6 +10,18 @@ Unlike a simple CRUD API, this service is designed to be populated by a collecto
 4.  The reconciler performs a "get-or-create" for each `Device` in the payload, using the **Redfish URI** as the unique key (to handle components without serial numbers).
 5.  A two-pass system ensures that after all devices are created, parent/child relationships are linked by resolving the `parentSerialNumber` (from the collector) to the `parentID` (the parent's UUID in the database).
 
+### Intended Use Cases
+
+The primary use case for `fru-tracker` is tracking hardware state changes over time using an event-driven architecture. 
+
+Instead of requiring clients to manually compute diffs between raw hardware snapshots, the system provides a workflow for detecting hardware modifications (e.g., a DIMM replacement or CPU swap):
+
+1. **Initial Collection:** A collector pushes an initial `DiscoverySnapshot` containing the baseline hardware state. The reconciler parses this payload and populates the database with individual `Device` resources.
+2. **Hardware Modification:** A physical or configuration change occurs on the target machine.
+3. **Subsequent Collection:** The collector pushes a new `DiscoverySnapshot` reflecting the current state.
+4. **Event-Driven Delta Tracking:** During the reconciliation process, the system identifies differences between the newly observed state and the existing database state. For any modified component, the reconciler updates the corresponding `Device` record and automatically emits a `fru-tracker.resource.device.updated` event over the message bus. 
+5. **Downstream Consumption:** External services or scripts can subscribe to this event stream to log the delta, trigger inventory alerts, or update external dashboards in real-time without needing to parse the raw snapshots.
+
 ### Device Data Model
 All hardware data is stored in the `spec` field, representing the observed state from the last snapshot.
 
