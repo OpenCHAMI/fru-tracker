@@ -30,6 +30,17 @@ To integrate a custom collector, the collector simply needs to gather the hardwa
 
 A reference implementation of a Redfish-based collector is provided in `cmd/collector` to demonstrate this interaction and serve as a starting point for development. Also, see below for a sample payload.
 
+### Current Capabilities
+
+The current implementation has been validated with an end-to-end workflow using the provided Redfish collector and the event-driven reconciliation controller.
+
+* **Redfish Discovery Collector (`cmd/collector`):** Capable of authenticating with a BMC, walking the Redfish `/Systems` tree, and extracting hardware data for Nodes, Processors (CPUs), and Memory (DIMMs). It packages this data into a `DiscoverySnapshot` payload and posts it to the API.
+* **Event-Driven Triggering:** The server publishes a `fru-tracker.resource.discoverysnapshot.created` event upon receiving a snapshot, which reliably triggers the background reconciler.
+* **Two-Pass Reconciliation:** 
+    * **Pass 1 (Ingestion):** The reconciler parses the raw JSON payload and performs a get-or-create operation for each device, utilizing the `redfish_uri` from the properties map as a unique primary key.
+    * **Pass 2 (Relationship Linking):** The reconciler evaluates the `parentSerialNumber` provided by the collector, identifies the corresponding parent device in the database, and updates the child device's `parentID` with the appropriate UUID.
+* **Storage Backend:** Validated using the local file storage backend for persisting resources.
+
 ### Device Data Model
 All hardware data is stored in the `spec` field, representing the observed state from the last snapshot.
 
