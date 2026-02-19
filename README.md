@@ -22,6 +22,14 @@ Instead of requiring clients to manually compute diffs between raw hardware snap
 4. **Event-Driven Delta Tracking:** During the reconciliation process, the system identifies differences between the newly observed state and the existing database state. For any modified component, the reconciler updates the corresponding `Device` record and automatically emits a `fru-tracker.resource.device.updated` event over the message bus. 
 5. **Downstream Consumption:** External services or scripts can subscribe to this event stream to log the delta, trigger inventory alerts, or update external dashboards in real-time without needing to parse the raw snapshots.
 
+#### Collector Integration
+
+The `fru-tracker` service is designed to be passive and agnostic to the specific hardware management protocols used in a data center. It expects users to deploy their own collectors tailored to their environment, collecting only information useful to each site. 
+
+To integrate a custom collector, the collector simply needs to gather the hardware state, format it as a JSON array of device specifications, and `POST` it to the `/discoverysnapshots` endpoint. 
+
+A reference implementation of a Redfish-based collector is provided in `cmd/collector` to demonstrate this interaction and serve as a starting point for development. Also, see below for a sample payload.
+
 ### Device Data Model
 All hardware data is stored in the `spec` field, representing the observed state from the last snapshot.
 
