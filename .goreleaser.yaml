@@ -1,0 +1,162 @@
+# SPDX-FileCopyrightText: Copyright © 2026 OpenCHAMI a Series of LF Projects, LLC
+#
+# SPDX-License-Identifier: MIT
+# GoReleaser configuration for fru-tracker
+
+version: 2
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: fru-tracker-server
+    main: ./cmd/server
+    binary: fru-tracker-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+  - id: fru-tracker-collector
+    main: ./cmd/collector
+    binary: fru-tracker-collector
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - id: fru-tracker
+    builds:
+      - fru-tracker-server
+      - fru-tracker-collector
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+dockers:
+  - id: fru-tracker-amd64
+    ids: [fru-tracker-server, fru-tracker-collector]
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+  - id: fru-tracker-arm64
+    ids: [fru-tracker-server, fru-tracker-collector]
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-arm64"
+      - "ghcr.io/openchami/fru-tracker:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+docker_manifests:
+  - name_template: "ghcr.io/openchami/fru-tracker:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-arm64"
+
+  - name_template: "ghcr.io/openchami/fru-tracker:latest"
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:latest-amd64"
+      - "ghcr.io/openchami/fru-tracker:latest-arm64"
+
+release:
+  github:
+    owner: openchami
+    name: fru-tracker
+  draft: false
+  prerelease: auto
+  mode: append
+  header: |
+    ## fru-tracker {{ .Version }}
+
+    **Release Date:** {{ .Date }}
+
+    ### Installation
+
+    #### Binaries
+    Download the appropriate binary for your platform from the assets below.
+
+    #### Docker
+    ```bash
+    docker pull ghcr.io/openchami/fru-tracker:{{ .Version }}
+    ```
+
+    #### Go Install
+    ```bash
+    go install [github.com/openchami/fru-tracker/cmd/server](https://github.com/openchami/fru-tracker/cmd/server)@{{ .Tag }}
+    go install [github.com/openchami/fru-tracker/cmd/collector](https://github.com/openchami/fru-tracker/cmd/collector)@{{ .Tag }}
+    ```
+
+  footer: |
+    ---
+    **Full Changelog**: https://github.com/openchami/fru-tracker/compare/{{ .PreviousTag }}...{{ .Tag }}
