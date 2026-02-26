@@ -133,8 +133,8 @@ release:
 
     #### Go Install
     ```bash
-    go install [github.com/openchami/fru-tracker/cmd/server](https://github.com/openchami/fru-tracker/cmd/server)@{{ .Tag }}
-   ```
+    go install github.com/openchami/fru-tracker/cmd/server@{{ .Tag }}
+    ```
 
   footer: |
     ---
