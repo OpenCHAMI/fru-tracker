@@ -6,15 +6,15 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/openchami/fabrica/pkg/fabrica"
+        "encoding/json"
 )
 
-// DiscoverySnapshot represents a DiscoverySnapshot resource
+// DiscoverySnapshot represents a discoverysnapshot resource
 type DiscoverySnapshot struct {
-	APIVersion string                  `json:"apiVersion"`
-	Kind       string                  `json:"kind"`
-	Metadata   fabrica.Metadata        `json:"metadata"`
+	APIVersion string           `json:"apiVersion"`
+	Kind       string           `json:"kind"`
+	Metadata   fabrica.Metadata `json:"metadata"`
 	Spec       DiscoverySnapshotSpec   `json:"spec" validate:"required"`
 	Status     DiscoverySnapshotStatus `json:"status,omitempty"`
 }
@@ -35,9 +35,14 @@ type DiscoverySnapshotStatus struct {
 
 // Validate implements custom validation logic for DiscoverySnapshot
 func (r *DiscoverySnapshot) Validate(ctx context.Context) error {
+	// Add custom validation logic here
+	// Example:
+	// if r.Spec.Description == "forbidden" {
+	//     return errors.New("description 'forbidden' is not allowed")
+	// }
+
 	return nil
 }
-
 // GetKind returns the kind of the resource
 func (r *DiscoverySnapshot) GetKind() string {
 	return "DiscoverySnapshot"
@@ -52,3 +57,6 @@ func (r *DiscoverySnapshot) GetName() string {
 func (r *DiscoverySnapshot) GetUID() string {
 	return r.Metadata.UID
 }
+
+// IsHub marks this as the hub/storage version
+func (r *DiscoverySnapshot) IsHub() {}
