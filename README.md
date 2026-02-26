@@ -19,10 +19,11 @@ Open a terminal and start the API server:
 
 ```bash
 go mod tidy
-go run ./cmd/server serve
+mkdir -p data
+go run ./cmd/server serve --database-url="file:./data/fru-tracker.db?cache=shared&_fk=1"
 ```
 
-*What is happening:* The server initializes the local file database, starts the internal event bus, and spins up the background reconciliation workers. It is now listening for requests on `http://localhost:8080`.
+*What is happening*: The server initializes the local SQLite database, starts the internal event bus, and spins up the background reconciliation workers. It is now listening for requests on http://localhost:8080.
 
 ### 2. Simulate a Hardware Discovery
 Open a **second** terminal. Create a file named `upload_request.json` containing a mock payload with a Node and a DIMM:
@@ -108,13 +109,12 @@ The current implementation has been validated with an end-to-end workflow using 
 * **Two-Pass Reconciliation:** 
     * **Pass 1 (Ingestion):** The reconciler parses the raw JSON payload and performs a get-or-create operation for each device, utilizing the `redfish_uri` from the properties map as a unique primary key.
     * **Pass 2 (Relationship Linking):** The reconciler evaluates the `parentSerialNumber` provided by the collector, identifies the corresponding parent device in the database, and updates the child device's `parentID` with the appropriate UUID.
-* **Storage Backend:** Validated using the local file storage backend for persisting resources.
+* **Storage Backend:** Validated using the Ent ORM backed by a local SQLite database for persisting resources.
 
 ### Future Work
 
 While the core event-driven ingestion pipeline is functional, several enhancements are planned to make `fru-tracker` production-ready:
 
-* **Production Storage Backend:** Migrate testing and deployment documentation from the local `file` storage backend to a robust relational database (e.g., SMD using Fabrica's `ent` backend option).
 * **Hardware Removal Handling:** Enhance the `DiscoverySnapshotReconciler` to detect missing components. If a previously tracked child device is absent from a new snapshot, the reconciler should update the existing `Device` record to mark it as removed, offline, or inactive.
 * **Event Delta Consumer:** Build a reference implementation of an event subscriber. This service will listen to the message bus for `fru-tracker.resource.device.updated` and `deleted` events to generate human-readable changelogs and trigger alerts.
 * **Collector Enhancements:** * Expand the reference Redfish collector to support additional component types (e.g., Drives, PowerSupplies, NetworkAdapters).
@@ -171,9 +171,10 @@ The server runs the API endpoints and the background reconciliation controller.
 ``` bash
 # Install dependencies
 go mod tidy
+mkdir -p data
 
 # Run the server (using the 'serve' command for cobra)
-go run ./cmd/server serve
+go run ./cmd/server serve --database-url="file:./data/fru-tracker.db?cache=shared&_fk=1"
 ```
 
 The server will start on `http://localhost:8080`.
@@ -214,31 +215,23 @@ Inventory collection and posting completed successfully.
 The server logs show the generated handler receiving the post, the event bus dispatching the event, and the `DiscoverySnapshotReconciler` executing the two-pass logic.
 
 ``` bash
-$ go run ./cmd/server serve
+$ go run ./cmd/server serve --database-url="file:./data/fru-tracker.db?cache=shared&_fk=1"
 ...
-[INFO] Reconciliation controller started with 5 workers
+2026/02/26 11:18:05 Database schema migrated successfully
+2026/02/26 11:18:05 Ent storage initialized with sqlite3 database
+...
+[INFO] Starting reconciliation controller with 5 workers
 [INFO] Server starting on 0.0.0.0:8080
 ...
-[DEBUG] Processing reconciliation for DiscoverySnapshot/discoverysnapshot-639ab206 (reason: Event: fru-tracker.resource.discoverysnapshot.created)
-[DEBUG] Reconciling DiscoverySnapshot DiscoverySnapshot/discoverysnapshot-639ab206
-[INFO] Reconciling snapshot-172.24.0.2-1770836443: Starting reconciliation
-[INFO] Reconciling snapshot-172.24.0.2-1770836443: Loaded 2 devices by URI and 2 by Serial
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Processors/CPU1
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Processors/CPU2
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory1
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory2
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory3
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 1): Creating new device: /Systems/QSBP82909274/Memory/Memory4
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking parent relationships...
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Processors/CPU1 (UID: device-244b078d) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Processors/CPU2 (UID: device-e4973199) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory1 (UID: device-27b7425d) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory2 (UID: device-506327c2) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory3 (UID: device-693d311f) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
-[INFO] Reconciling snapshot-172.24.0.2-1770836443 (Pass 2): Linking /Systems/QSBP82909274/Memory/Memory4 (UID: device-3f4acf01) to parent /Systems/QSBP82909274 (UID: device-6dad4952)
-[INFO] Reconciling snapshot-172.24.0.2-1770836443: Successfully reconciled
-[DEBUG] Reconciliation successful for DiscoverySnapshot/discoverysnapshot-639ab206
+[DEBUG] Processing reconciliation for DiscoverySnapshot/discoverysnapshot-ff300d52 (reason: Event: fru-tracker.resource.discoverysnapshot.created)
+[DEBUG] Reconciling DiscoverySnapshot DiscoverySnapshot/discoverysnapshot-ff300d52
+[INFO] Reconciling test-01: Starting reconciliation
+[INFO] Reconciling test-01: Loaded 0 devices by URI and 0 by Serial
+[INFO] Reconciling test-01 (Pass 1): Creating new device: /Systems/NODE1
+[INFO] Reconciling test-01 (Pass 1): Creating new device: /Systems/NODE1/Memory/1
+[INFO] Reconciling test-01 (Pass 2): Linking parent relationships...
+[INFO] Reconciling test-01 (Pass 2): Linking /Systems/NODE1/Memory/1 (UID: device-3e8d0706) to parent /Systems/NODE1 (UID: device-262b2465)
+[INFO] Reconciling test-01: Successfully reconciled
 ```
 
 ### Step 3: Final Data in API (Result)
