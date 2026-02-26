@@ -276,13 +276,19 @@ var deviceCreateCmd = &cobra.Command{
 
 Examples:
   # Create from stdin
-  echo '{"description": "Example description"}' | client device create
+  echo '{"deviceType": "example-value", "manufacturer": "example-value", "partNumber": "example-value", "serialNumber": "example-value", "parentID": "example-value", "parentSerialNumber": "example-value", "properties": {"{"key":"value"}": "value"}}' | client device create
 
   # Create with --spec flag
-  client device create --spec '{"description": "Example description"}'
+  client device create --spec '{"deviceType": "example-value", "manufacturer": "example-value", "partNumber": "example-value", "serialNumber": "example-value", "parentID": "example-value", "parentSerialNumber": "example-value", "properties": {"{"key":"value"}": "value"}}'
 
 Spec fields:
-  description (string)
+  deviceType (string) [required]
+  manufacturer (string)
+  partNumber (string)
+  serialNumber (string) [required]
+  parentID (string)
+  parentSerialNumber (string)
+  properties (map[string]json.RawMessage)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := getClient()
@@ -326,13 +332,19 @@ var deviceUpdateCmd = &cobra.Command{
 
 Examples:
   # Update from stdin
-  echo '{"description": "Example description"}' | client device update <uid>
+  echo '{"deviceType": "example-value", "manufacturer": "example-value", "partNumber": "example-value", "serialNumber": "example-value", "parentID": "example-value", "parentSerialNumber": "example-value", "properties": {"{"key":"value"}": "value"}}' | client device update <uid>
 
   # Update with --spec flag
-  client device update <uid> --spec '{"description": "Example description"}'
+  client device update <uid> --spec '{"deviceType": "example-value", "manufacturer": "example-value", "partNumber": "example-value", "serialNumber": "example-value", "parentID": "example-value", "parentSerialNumber": "example-value", "properties": {"{"key":"value"}": "value"}}'
 
 Spec fields:
-  description (string)
+  deviceType (string) [required]
+  manufacturer (string)
+  partNumber (string)
+  serialNumber (string) [required]
+  parentID (string)
+  parentSerialNumber (string)
+  properties (map[string]json.RawMessage)
 `,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -610,13 +622,13 @@ var discoverysnapshotCreateCmd = &cobra.Command{
 
 Examples:
   # Create from stdin
-  echo '{"description": "Example description"}' | client discoverysnapshot create
+  echo '{"rawData": "[]"}' | client discoverysnapshot create
 
   # Create with --spec flag
-  client discoverysnapshot create --spec '{"description": "Example description"}'
+  client discoverysnapshot create --spec '{"rawData": "[]"}'
 
 Spec fields:
-  description (string)
+  rawData (json.RawMessage) [required]
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := getClient()
@@ -660,13 +672,13 @@ var discoverysnapshotUpdateCmd = &cobra.Command{
 
 Examples:
   # Update from stdin
-  echo '{"description": "Example description"}' | client discoverysnapshot update <uid>
+  echo '{"rawData": "[]"}' | client discoverysnapshot update <uid>
 
   # Update with --spec flag
-  client discoverysnapshot update <uid> --spec '{"description": "Example description"}'
+  client discoverysnapshot update <uid> --spec '{"rawData": "[]"}'
 
 Spec fields:
-  description (string)
+  rawData (json.RawMessage) [required]
 `,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
