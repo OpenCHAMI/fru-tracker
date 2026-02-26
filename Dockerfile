@@ -19,7 +19,6 @@ WORKDIR /home/fru
 
 # Copy pre-built binaries from GoReleaser
 COPY fru-tracker-server /usr/local/bin/fru-tracker-server
-COPY fru-tracker-collector /usr/local/bin/fru-tracker-collector
 
 # Set ownership
 RUN chown -R fru:fru /home/fru

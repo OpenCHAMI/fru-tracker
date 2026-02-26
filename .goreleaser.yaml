@@ -29,30 +29,10 @@ builds:
     flags:
       - -trimpath
 
-  - id: fru-tracker-collector
-    main: ./cmd/collector
-    binary: fru-tracker-collector
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-    ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-      - -X main.commit={{.Commit}}
-      - -X main.date={{.Date}}
-    flags:
-      - -trimpath
-
 archives:
   - id: fru-tracker
     builds:
       - fru-tracker-server
-      - fru-tracker-collector
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
@@ -83,7 +63,7 @@ changelog:
 
 dockers:
   - id: fru-tracker-amd64
-    ids: [fru-tracker-server, fru-tracker-collector]
+    ids: [fru-tracker-server]
     goos: linux
     goarch: amd64
     image_templates:
@@ -101,7 +81,7 @@ dockers:
       - "--label=org.opencontainers.image.licenses=MIT"
 
   - id: fru-tracker-arm64
-    ids: [fru-tracker-server, fru-tracker-collector]
+    ids: [fru-tracker-server]
     goos: linux
     goarch: arm64
     image_templates:
@@ -154,8 +134,7 @@ release:
     #### Go Install
     ```bash
     go install [github.com/openchami/fru-tracker/cmd/server](https://github.com/openchami/fru-tracker/cmd/server)@{{ .Tag }}
-    go install [github.com/openchami/fru-tracker/cmd/collector](https://github.com/openchami/fru-tracker/cmd/collector)@{{ .Tag }}
-    ```
+   ```
 
   footer: |
     ---
