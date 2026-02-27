@@ -3,17 +3,18 @@
 #
 # SPDX-License-Identifier: MIT
 
-FROM alpine:latest
+FROM debian:bookworm-slim
 
 # Install runtime dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     git \
-    bash
+    bash \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN addgroup -g 1000 fru && \
-    adduser -D -u 1000 -G fru fru
+RUN groupadd -g 1000 fru && \
+    useradd -r -u 1000 -g fru fru
 
 WORKDIR /home/fru
 

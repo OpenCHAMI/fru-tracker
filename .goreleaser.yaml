@@ -14,13 +14,11 @@ builds:
     main: ./cmd/server
     binary: fru-tracker-server
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
-      - arm64
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -80,34 +78,14 @@ dockers:
       - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--label=org.opencontainers.image.licenses=MIT"
 
-  - id: fru-tracker-arm64
-    ids: [fru-tracker-server]
-    goos: linux
-    goarch: arm64
-    image_templates:
-      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-arm64"
-      - "ghcr.io/openchami/fru-tracker:latest-arm64"
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--label=org.opencontainers.image.licenses=MIT"
-
 docker_manifests:
   - name_template: "ghcr.io/openchami/fru-tracker:{{ .Version }}"
     image_templates:
       - "ghcr.io/openchami/fru-tracker:{{ .Version }}-amd64"
-      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-arm64"
 
   - name_template: "ghcr.io/openchami/fru-tracker:latest"
     image_templates:
       - "ghcr.io/openchami/fru-tracker:latest-amd64"
-      - "ghcr.io/openchami/fru-tracker:latest-arm64"
 
 release:
   github:
@@ -123,9 +101,6 @@ release:
 
     ### Installation
 
-    #### Binaries
-    Download the appropriate binary for your platform from the assets below.
-
     #### Docker
     ```bash
     docker pull ghcr.io/openchami/fru-tracker:{{ .Version }}
@@ -133,9 +108,10 @@ release:
 
     #### Go Install
     ```bash
-    go install github.com/openchami/fru-tracker/cmd/server@{{ .Tag }}
+    go install [github.com/openchami/fru-tracker/cmd/server](https://github.com/openchami/fru-tracker/cmd/server)@{{ .Tag }}
     ```
 
   footer: |
     ---
     **Full Changelog**: https://github.com/openchami/fru-tracker/compare/{{ .PreviousTag }}...{{ .Tag }}
+    
