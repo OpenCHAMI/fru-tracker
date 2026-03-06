@@ -215,33 +215,51 @@ func getSystemInventory(c *RedfishClient, systemURI string, systemData *RedfishS
 
 // getCollectionDevices retrieves a collection, iterates over members, and maps them.
 func getCollectionDevices(c *RedfishClient, collectionURI, deviceType, parentURI, parentSerial string, componentTypeExample interface{}) ([]*v1.DeviceSpec, error) {
-	var specs []*v1.DeviceSpec
-	collectionBody, err := c.Get(collectionURI)
-	if err != nil {
-		return nil, err
-	}
-	var collection RedfishCollection
-	if err := json.Unmarshal(collectionBody, &collection); err != nil {
-		return nil, fmt.Errorf("failed to decode collection from %s: %w", collectionURI, err)
-	}
-	for _, member := range collection.Members {
-		memberURI := strings.TrimPrefix(member.ODataID, "/redfish/v1")
-		memberBody, err := c.Get(memberURI)
-		if err != nil {
-			fmt.Printf("Warning: Failed to get member %s: %v\n", member.ODataID, err)
-			continue
-		}
-		component := reflect.New(reflect.TypeOf(componentTypeExample).Elem()).Interface()
-		if err := json.Unmarshal(memberBody, &component); err != nil {
-			fmt.Printf("Warning: Failed to unmarshal component %s: %v\n", member.ODataID, err)
-			continue
-		}
-		rfProps := reflect.ValueOf(component).Elem().Field(0).Interface().(CommonRedfishProperties)
+    var specs []*v1.DeviceSpec
+    collectionBody, err := c.Get(collectionURI)
+    if err != nil {
+        return nil, err
+    }
+    var collection RedfishCollection
+    if err := json.Unmarshal(collectionBody, &collection); err != nil {
+        return nil, fmt.Errorf("failed to decode collection from %s: %w", collectionURI, err)
+    }
+    for _, member := range collection.Members {
+        memberURI := strings.TrimPrefix(member.ODataID, "/redfish/v1")
+        memberBody, err := c.Get(memberURI)
+        if err != nil {
+            fmt.Printf("Warning: Failed to get member %s: %v\n", member.ODataID, err)
+            continue
+        }
+        component := reflect.New(reflect.TypeOf(componentTypeExample).Elem()).Interface()
+        if err := json.Unmarshal(memberBody, &component); err != nil {
+            fmt.Printf("Warning: Failed to unmarshal component %s: %v\n", member.ODataID, err)
+            continue
+        }
+        rfProps := reflect.ValueOf(component).Elem().Field(0).Interface().(CommonRedfishProperties)
 
-		// Pass the parentSerial to mapCommonProperties
-		specs = append(specs, mapCommonProperties(rfProps, deviceType, memberURI, parentURI, parentSerial))
-	}
-	return specs, nil
+        // Pass the parentSerial to mapCommonProperties
+        spec := mapCommonProperties(rfProps, deviceType, memberURI, parentURI, parentSerial)
+        
+        // Handle DIMM-specific properties
+        if deviceType == "DIMM" {
+            if mem, ok := component.(*RedfishMemory); ok {
+                // Add CapacityMiB to properties
+                if mem.CapacityMiB > 0 {
+                    capBytes, _ := json.Marshal(mem.CapacityMiB)
+                    spec.Properties["capacity_mib"] = capBytes
+                }
+                // Add OperatingSpeedMhz to properties
+                if mem.OperatingSpeedMhz > 0 {
+                    speedBytes, _ := json.Marshal(mem.OperatingSpeedMhz)
+                    spec.Properties["operating_speed_mhz"] = speedBytes
+                }
+            }
+        }
+        
+        specs = append(specs, spec)
+    }
+    return specs, nil
 }
 
 // mapCommonProperties maps Redfish fields to the API's DeviceSpec struct.

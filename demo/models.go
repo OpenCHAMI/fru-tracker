@@ -61,4 +61,6 @@ type RedfishProcessor struct {
 // RedfishMemory defines the structure for a Memory resource (the DIMM).
 type RedfishMemory struct {
 	CommonRedfishProperties // Embeds the common fields
+	CapacityMiB       int `json:"CapacityMiB"`
+	OperatingSpeedMhz int `json:"OperatingSpeedMhz"`
 }
