@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/example/fru-tracker/pkg/collector"
-
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +32,7 @@ func main() {
 func executeGatherAndPost(cmd *cobra.Command, args []string) {
 	fmt.Printf("Starting inventory collection for BMC IP: %s\n", bmcIP)
 
-	err := collector.CollectAndPost(bmcIP)
+	err := CollectAndPost(bmcIP)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Collection Failed: %v\n", err)
 		os.Exit(1)

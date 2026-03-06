@@ -1,5 +1,5 @@
 // This file contains the complete Redfish discovery and API posting logic.
-package collector
+package main
 
 import (
 "context"
