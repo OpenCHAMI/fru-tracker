@@ -1,59 +1,45 @@
-# demo/collector-plan.md
-
-# FRU-Tracker Collector Generation Plan
+# FRU-Tracker Collector Extension Plan
 
 ## Objective
-Write a script that gathers hardware inventory from a target system and posts it to the OpenCHAMI fru-tracker API.
+Extend the existing Go Redfish collector (`demo/collector`) to discover new hardware component types from a BMC and format them for the OpenCHAMI fru-tracker API.
 
-## API Endpoint
-- **URL**: `http://localhost:8080/discoverysnapshots`
-- **Method**: `POST`
-- **Content-Type**: `application/json`
+## API Data Model Rules
+The API ingests a single `DiscoverySnapshot` containing a `rawData` array of `DeviceSpec` objects. When adding new components to the collector, you must adhere to these rules:
 
-## Data Model Requirements
-The API requires a single "DiscoverySnapshot" payload that contains an array of all discovered devices in the `spec.rawData` field.
+1. **`DeviceType`**: Assign a distinct string (e.g., "Drive", "PowerSupply", "Fan").
+2. **`Properties.redfish_uri`**: Every device MUST include its Redfish `@odata.id` mapped to `properties["redfish_uri"]`. This is the database primary key.
+3. **`ParentSerialNumber`**: If the new component is a child of the Node (e.g., a Drive inside the chassis), it MUST include a `parentSerialNumber` that matches the Node's `serialNumber`. This ensures the server-side reconciler links them correctly.
 
-### Device Rules:
-1. Every device MUST have a `deviceType` (e.g., "Node", "DIMM", "CPU").
-2. Every device MUST have a `properties` object containing a `redfish_uri` string. This URI is used as the primary key by the database. It does not need to be a real Redfish endpoint, but it must be a unique string formatted like a hierarchical path (e.g., `/Systems/Host1/Memory/DIMM1`).
-3. If a device is a child of another device (e.g., a DIMM inside a Node), it MUST include a `parentSerialNumber` that matches the `serialNumber` of its parent device.
-4. Populate the `properties` map with the specific machine data you want to gather and store (e.g., firmware versions, temperatures, custom tags).
-5. Optional root-level fields include `manufacturer`, `partNumber`, and `serialNumber`.
+## Implementation Steps for Copilot
 
-## Target JSON Structure
-Your script must generate and POST a JSON payload exactly matching this structure:
+When instructed to add a new hardware component (like a Drive or Power Supply), perform the following modifications to the Go code:
 
-```json
-{
-  "apiVersion": "example.fabrica.dev/v1",
-  "kind": "DiscoverySnapshot",
-  "metadata": {
-    "name": "snapshot-<timestamp-or-hostname>"
-  },
-  "spec": {
-    "rawData": [
-      {
-        "deviceType": "Node",
-        "serialNumber": "NODE-123",
-        "manufacturer": "HPE",
-        "properties": {
-          "redfish_uri": "/Systems/NODE-123",
-          "bios_version": "v1.0.2"
-        }
-      },
-      {
-        "deviceType": "DIMM",
-        "serialNumber": "DIMM-456",
-        "parentSerialNumber": "NODE-123",
-        "properties": {
-          "redfish_uri": "/Systems/NODE-123/Memory/1",
-          "clock_speed": "3200MHz"
-        }
-      }
-    ]
-  }
+### 1. Update `models.go`
+Create the necessary JSON structs to unmarshal the target Redfish endpoint. Embed the `CommonRedfishProperties` struct to capture standard fields like Manufacturer, PartNumber, and SerialNumber.
+
+```go
+// Example for a new component
+type RedfishDrive struct {
+	CommonRedfishProperties
+	CapacityBytes int64 `json:"CapacityBytes"`
+	Protocol      string `json:"Protocol"`
 }
 ```
 
-## Context & Examples
-To see a working implementation of a collector that queries a BMC via Redfish, parses the data, and posts this exact structure, reference the Go code located in the `demo/collector/` directory of this workspace.
+### 2. Update `SystemInventory` struct
+Add a slice for the new component type to the `SystemInventory` struct in `models.go`.
+
+```go
+type SystemInventory struct {
+	NodeSpec *v1.DeviceSpec
+	CPUs     []*v1.DeviceSpec
+	DIMMs    []*v1.DeviceSpec
+    Drives   []*v1.DeviceSpec // New addition
+}
+```
+
+### 3. Update `collector.go` Discovery Logic
+In `getSystemInventory`, navigate to the appropriate Redfish collection URI (e.g., `/Systems/{id}/Storage` or `/Chassis/{id}/Power`). Use the existing `getCollectionDevices` helper function to iterate through the members, passing the Node's serial number as the `parentSerial` argument.
+
+### 4. Append to Snapshot
+In `discoverDevices`, append the newly populated slice from `SystemInventory` to the master `specs` array so it is included in the final API POST payload.
