@@ -14,8 +14,11 @@ mkdir -p data && docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/openchami/
 
 The provided collector (`demo/collector`) automatically discovers Nodes, CPUs, and DIMMs via Redfish. Open GitHub Copilot Chat (or your preferred AI coding assistant) in your IDE to extend its capabilities using the `collector-plan.md` instructions.
 
-Example prompt:
+**Option A: Add a completely new hardware component**
 > "@workspace Read the `demo/collector-plan.md` file and the code in `demo/collector`. I want to extend the collector to also discover Physical Drives. Add the necessary Redfish structs and update the mapping logic to extract the drives from the Redfish Storage collection and append them to the inventory."
+
+**Option B: Add new data fields to existing components**
+> "@workspace Read the `demo/collector-plan.md` file and the code in `demo/collector`. I want to modify the collector to gather the `CapacityMiB` and `OperatingSpeedMhz` for each DIMM. Update the Redfish structs and ensure these new fields are extracted and saved as JSON bytes into the `properties` map of the `DeviceSpec`."
 
 ### 3. Run the Collector
 
