@@ -7,7 +7,7 @@ Extend the existing Go Redfish collector (`demo/collector`) to gather additional
 The API ingests a single `DiscoverySnapshot` containing a `rawData` array of `DeviceSpec` objects. 
 
 1. **`DeviceType`**: Every component must have a distinct string (e.g., "Node", "CPU", "DIMM", "Drive").
-2. **`Properties.redfish_uri`**: Every device MUST include its Redfish `@odata.id` mapped to `properties["redfish_uri"]`. This acts as the database primary key.
+2. **`Properties.redfish_uri`**: Every device MUST include its Redfish `@odata.id` mapped to `properties["redfish_uri"]`. This acts is used by the service to determinte parent-child relations.
 3. **`ParentSerialNumber`**: If the component is a child (e.g., a Drive inside the chassis), it MUST include a `parentSerialNumber` matching the parent Node's `serialNumber` to ensure the server-side reconciler links them correctly.
 4. **Custom Attributes**: Any data field that is not `manufacturer`, `partNumber`, or `serialNumber` MUST be serialized to JSON bytes and stored inside the `properties` map (type `map[string]json.RawMessage`).
 
