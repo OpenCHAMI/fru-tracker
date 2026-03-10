@@ -75,6 +75,8 @@ For example, let's look at our DIMMs:
 }
 ```
 
+How about we add the `CapacityMiB` and `OperatingSpeedMhz` into our collector?
+
 **Option A: Add a completely new hardware component**
 > "@workspace Read the `demo/collector-plan.md` file and the code in `demo/collector`. I want to extend the collector to also discover Physical Drives. Add the necessary Redfish structs and update the mapping logic to extract the drives from the Redfish Storage collection and append them to the inventory."
 
@@ -94,5 +96,5 @@ go run ./demo/collector --ip <BMC_IP_ADDRESS>
 Retrieve the populated devices from the API to verify the reconciliation process successfully linked the new hardware:
 
 ```bash
-curl -s http://localhost:8080/devices
+curl -s http://localhost:8081/devices
 ```
