@@ -12,7 +12,7 @@ mkdir -p data && chmod 777 data
 ```
 
 ```bash
-mkdir -p data && docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/openchami/fru-tracker:0.2.1 serve --database-url="file:/data/fru-tracker.db?cache=shared&_fk=1"
+docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/openchami/fru-tracker:0.2.1 serve --database-url="file:/data/fru-tracker.db?cache=shared&_fk=1"
 ```
 
 ### 2. Extend the Collector
