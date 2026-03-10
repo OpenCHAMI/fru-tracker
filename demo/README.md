@@ -6,6 +6,11 @@ This tutorial demonstrates how to run the fru-tracker API locally and use GitHub
 
 Run the fru-tracker container with the SQLite database backend:
 
+Create a directory for the SQLite database file and ensure you can write to it:
+```bash
+mkdir -p data && chmod 777 data
+```
+
 ```bash
 mkdir -p data && docker run -p 8080:8080 -v $(pwd)/data:/data ghcr.io/openchami/fru-tracker:0.2.1 serve --database-url="file:/data/fru-tracker.db?cache=shared&_fk=1"
 ```
