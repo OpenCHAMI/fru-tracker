@@ -7,8 +7,8 @@ import (
 	"time"
 
 	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
-	"github.com/openchami/fabrica/pkg/resource"
 	"github.com/openchami/fabrica/pkg/fabrica"
+	"github.com/openchami/fabrica/pkg/resource"
 )
 
 func (r *DiscoverySnapshotReconciler) reconcileDiscoverySnapshot(ctx context.Context, snapshot *v1.DiscoverySnapshot) error {
