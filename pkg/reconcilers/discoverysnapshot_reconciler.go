@@ -29,52 +29,45 @@ func (r *DiscoverySnapshotReconciler) reconcileDiscoverySnapshot(ctx context.Con
 		return nil
 	}
 
-	deviceMapByURI, err := r.buildDeviceMapByURI(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to build device map by URI: %w", err)
-	}
 	deviceMapBySerial, err := r.buildDeviceMapBySerial(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to build device map by Serial: %w", err)
 	}
 
-	r.Logger.Infof("Reconciling %s: Loaded %d devices by URI and %d by Serial", snapshot.GetName(), len(deviceMapByURI), len(deviceMapBySerial))
+	r.Logger.Infof("Reconciling %s: Loaded %d devices by Serial", snapshot.GetName(), len(deviceMapBySerial))
 	snapshotDeviceMap := make(map[string]*v1.Device)
 	processedCount := 0
 
 	for _, spec := range payloadSpecs {
-		uri, err := getRedfishURI(spec)
-		if err != nil {
-			r.Logger.Errorf("Reconciling %s: Skipping device, missing redfish_uri", snapshot.GetName())
+		serial := spec.SerialNumber
+		if serial == "" {
+			r.Logger.Errorf("Reconciling %s: Skipping device, missing serialNumber", snapshot.GetName())
 			continue
 		}
 
-		existingDevice, found := deviceMapByURI[uri]
+		existingDevice, found := deviceMapBySerial[serial]
 		if !found {
-			r.Logger.Infof("Reconciling %s (Pass 1): Creating new device: %s", snapshot.GetName(), uri)
-			newDevice, err := r.createNewDevice(ctx, spec, uri)
+			r.Logger.Infof("Reconciling %s (Pass 1): Creating new device: %s", snapshot.GetName(), serial)
+			newDevice, err := r.createNewDevice(ctx, spec, serial)
 			if err != nil {
-				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to create device %s: %v", snapshot.GetName(), uri, err)
+				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to create device %s: %v", snapshot.GetName(), serial, err)
 				continue
 			}
-			snapshotDeviceMap[uri] = newDevice
-			deviceMapByURI[uri] = newDevice
-			if newDevice.Spec.SerialNumber != "" {
-				deviceMapBySerial[newDevice.Spec.SerialNumber] = newDevice
-			}
+			snapshotDeviceMap[serial] = newDevice
+			deviceMapBySerial[serial] = newDevice
 
 		} else {
-			r.Logger.Infof("Reconciling %s (Pass 1): Updating existing device: %s (UID: %s)", snapshot.GetName(), uri, existingDevice.GetUID())
+			r.Logger.Infof("Reconciling %s (Pass 1): Updating existing device: %s (UID: %s)", snapshot.GetName(), serial, existingDevice.GetUID())
 
 			spec.ParentID = existingDevice.Spec.ParentID
 			existingDevice.Spec = spec
 			existingDevice.Metadata.UpdatedAt = time.Now()
 
 			if err := r.Client.Update(ctx, existingDevice); err != nil {
-				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to update device %s: %v", snapshot.GetName(), uri, err)
+				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to update device %s: %v", snapshot.GetName(), serial, err)
 				continue
 			}
-			snapshotDeviceMap[uri] = existingDevice
+			snapshotDeviceMap[serial] = existingDevice
 		}
 		processedCount++
 	}
@@ -115,17 +108,17 @@ func (r *DiscoverySnapshotReconciler) reconcileDiscoverySnapshot(ctx context.Con
 	return nil
 }
 
-func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec v1.DeviceSpec, redfishURI string) (*v1.Device, error) {
+func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec v1.DeviceSpec, serialNumber string) (*v1.Device, error) {
 	uid, err := resource.GenerateUIDForResource("Device")
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate UID for device: %w", err)
 	}
-	
+
 	newDevice := &v1.Device{
 		APIVersion: "example.fabrica.dev/v1",
 		Kind:       "Device",
 		Metadata: fabrica.Metadata{
-			Name: redfishURI,
+			Name: serialNumber,
 			UID:  uid,
 		},
 		Spec: spec,
@@ -133,7 +126,7 @@ func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec 
 	newDevice.Metadata.Initialize(newDevice.Metadata.Name, newDevice.Metadata.UID)
 
 	if err := r.Client.Create(ctx, newDevice); err != nil {
-		return nil, fmt.Errorf("failed to create device %s: %w", redfishURI, err)
+		return nil, fmt.Errorf("failed to create device %s: %w", serialNumber, err)
 	}
 	return newDevice, nil
 }
@@ -155,44 +148,4 @@ func (r *DiscoverySnapshotReconciler) buildDeviceMapBySerial(ctx context.Context
 		}
 	}
 	return deviceMap, nil
-}
-
-func (r *DiscoverySnapshotReconciler) buildDeviceMapByURI(ctx context.Context) (map[string]*v1.Device, error) {
-	resourceList, err := r.Client.List(ctx, "Device")
-	if err != nil {
-		return nil, err
-	}
-	deviceMap := make(map[string]*v1.Device)
-	for _, item := range resourceList {
-		dev, ok := item.(*v1.Device)
-		if !ok {
-			r.Logger.Errorf("Reconciling: Found non-device item in storage, skipping.")
-			continue
-		}
-		uri, err := getRedfishURI(dev.Spec)
-		if err != nil {
-			r.Logger.Warnf("Reconciling: Device %s has no redfish_uri, skipping from URI map.", dev.GetUID())
-			continue
-		}
-		deviceMap[uri] = dev
-	}
-	return deviceMap, nil
-}
-
-func getRedfishURI(spec v1.DeviceSpec) (string, error) {
-	uriBytes, ok := spec.Properties["redfish_uri"]
-	if !ok {
-		return "", fmt.Errorf("missing redfish_uri in properties")
-	}
-	
-	var uri string
-	if err := json.Unmarshal(uriBytes, &uri); err != nil {
-		return "", fmt.Errorf("failed to unmarshal redfish_uri: %w", err)
-	}
-
-	if uri == "" {
-		return "", fmt.Errorf("redfish_uri property is an empty string")
-	}
-
-	return uri, nil
 }
