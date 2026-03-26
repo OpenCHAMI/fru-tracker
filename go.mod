@@ -14,8 +14,10 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/openchami/fabrica v0.4.0
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.16.0
+	github.com/stretchr/testify v1.11.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -25,6 +27,7 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/cloudevents/sdk-go/v2 v2.16.2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
@@ -53,10 +56,12 @@ require (
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/woodsbury/decimal128 v1.3.0 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
