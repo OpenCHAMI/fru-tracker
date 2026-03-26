@@ -40,12 +40,6 @@ type DeviceSpec struct {
 
 // DeviceStatus defines the observed state of Device
 type DeviceStatus struct {
-	Phase      string `json:"phase,omitempty"`
-	Message    string `json:"message,omitempty"`
-	Ready      bool   `json:"ready"`
-        
-        // ChildrenDeviceIds is a read-only list of devices contained within this one.
-	ChildrenDeviceIds []string `json:"childrenDeviceIds,omitempty"`
 }
 
 // Validate implements custom validation logic for Device
