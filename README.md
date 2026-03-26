@@ -118,10 +118,7 @@ Hardware data is stored in the `spec` field, representing the observed state.
 * **properties (Map):** An arbitrary key-value map for additional data (e.g., `redfish_uri`).
 
 #### Core `status` fields
-* **phase (String):** The reconciliation status (e.g., "Processing", "Completed").
-* **message (String):** A human-readable message from the reconciler.
-* **ready (Boolean):** Indicates if the resource is fully reconciled.
-* **childrenDeviceIds (Array of Strings):** A read-only list of UIDs for devices contained within this one.
+* none...
 
 ### Usage
 
