@@ -1,5 +1,8 @@
 # fru-tracker
 
+YouTube Video Demo: https://www.youtube.com/watch?v=TemS6Ok1c3c
+HPSFCon talk: Coming soon...
+
 ## Getting Started
 This is an inventory API for OpenCHAMI, generated with Fabrica, based on an event-driven reconciliation model.
 
