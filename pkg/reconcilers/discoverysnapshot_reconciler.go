@@ -4,12 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/openchami/fabrica/pkg/fabrica"
 	"github.com/openchami/fabrica/pkg/resource"
 )
+
+// extractStringProperty safely extracts a string value from the json.RawMessage properties map
+func extractStringProperty(properties map[string]json.RawMessage, key string) string {
+	if properties == nil {
+		return ""
+	}
+	raw, exists := properties[key]
+	if !exists {
+		return ""
+	}
+	var val string
+	if err := json.Unmarshal(raw, &val); err != nil {
+		return ""
+	}
+	return strings.TrimSpace(val)
+}
 
 func (r *DiscoverySnapshotReconciler) reconcileDiscoverySnapshot(ctx context.Context, snapshot *v1.DiscoverySnapshot) error {
 	if snapshot.Status.Phase == "Completed" {
@@ -29,59 +46,102 @@ func (r *DiscoverySnapshotReconciler) reconcileDiscoverySnapshot(ctx context.Con
 		return nil
 	}
 
-	deviceMapBySerial, err := r.buildDeviceMapBySerial(ctx)
+	deviceMapBySerial, deviceMapByURI, err := r.buildDeviceMaps(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to build device map by Serial: %w", err)
+		return fmt.Errorf("failed to build device maps: %w", err)
 	}
 
-	r.Logger.Infof("Reconciling %s: Loaded %d devices by Serial", snapshot.GetName(), len(deviceMapBySerial))
+	r.Logger.Infof("Reconciling %s: Loaded %d devices by Serial, %d by URI", snapshot.GetName(), len(deviceMapBySerial), len(deviceMapByURI))
 	snapshotDeviceMap := make(map[string]*v1.Device)
 	processedCount := 0
 
 	for _, spec := range payloadSpecs {
 		serial := spec.SerialNumber
-		if serial == "" {
-			r.Logger.Errorf("Reconciling %s: Skipping device, missing serialNumber", snapshot.GetName())
+		uri := extractStringProperty(spec.Properties, "redfish_uri")
+
+		if serial == "" && uri == "" {
+			r.Logger.Errorf("Reconciling %s: Skipping device, missing both serialNumber and redfish_uri", snapshot.GetName())
 			continue
 		}
 
-		existingDevice, found := deviceMapBySerial[serial]
+		// Determine identity key for tracking within this snapshot loop
+		identityKey := serial
+		if identityKey == "" {
+			identityKey = uri
+		}
+
+		var existingDevice *v1.Device
+		var found bool
+
+		// Check serial first, then fallback to URI
+		if serial != "" {
+			existingDevice, found = deviceMapBySerial[serial]
+		}
+		if !found && uri != "" {
+			existingDevice, found = deviceMapByURI[uri]
+		}
+
 		if !found {
-			r.Logger.Infof("Reconciling %s (Pass 1): Creating new device: %s", snapshot.GetName(), serial)
-			newDevice, err := r.createNewDevice(ctx, spec, serial)
+			r.Logger.Infof("Reconciling %s (Pass 1): Creating new device: %s", snapshot.GetName(), identityKey)
+			newDevice, err := r.createNewDevice(ctx, spec, serial, uri)
 			if err != nil {
-				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to create device %s: %v", snapshot.GetName(), serial, err)
+				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to create device %s: %v", snapshot.GetName(), identityKey, err)
 				continue
 			}
-			snapshotDeviceMap[serial] = newDevice
-			deviceMapBySerial[serial] = newDevice
+			snapshotDeviceMap[identityKey] = newDevice
+			
+			if serial != "" {
+				deviceMapBySerial[serial] = newDevice
+			}
+			if uri != "" {
+				deviceMapByURI[uri] = newDevice
+			}
 
 		} else {
-			r.Logger.Infof("Reconciling %s (Pass 1): Updating existing device: %s (UID: %s)", snapshot.GetName(), serial, existingDevice.GetUID())
+			r.Logger.Infof("Reconciling %s (Pass 1): Updating existing device: %s (UID: %s)", snapshot.GetName(), identityKey, existingDevice.GetUID())
 
 			spec.ParentID = existingDevice.Spec.ParentID
 			existingDevice.Spec = spec
 			existingDevice.Metadata.UpdatedAt = time.Now()
 
 			if err := r.Client.Update(ctx, existingDevice); err != nil {
-				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to update device %s: %v", snapshot.GetName(), serial, err)
+				r.Logger.Errorf("Reconciling %s (Pass 1): Failed to update device %s: %v", snapshot.GetName(), identityKey, err)
 				continue
 			}
-			snapshotDeviceMap[serial] = existingDevice
+			snapshotDeviceMap[identityKey] = existingDevice
+			
+			if serial != "" {
+				deviceMapBySerial[serial] = existingDevice
+			}
+			if uri != "" {
+				deviceMapByURI[uri] = existingDevice
+			}
 		}
 		processedCount++
 	}
 
 	r.Logger.Infof("Reconciling %s (Pass 2): Linking parent relationships...", snapshot.GetName())
 	linksUpdated := 0
-	for _, dev := range snapshotDeviceMap {
+	for identityKey, dev := range snapshotDeviceMap {
 		parentSerial := dev.Spec.ParentSerialNumber
-		if parentSerial == "" {
+		parentURI := extractStringProperty(dev.Spec.Properties, "redfish_parent_uri")
+
+		if parentSerial == "" && parentURI == "" {
 			continue
 		}
-		parentDevice, found := deviceMapBySerial[parentSerial]
+
+		var parentDevice *v1.Device
+		var found bool
+
+		if parentSerial != "" {
+			parentDevice, found = deviceMapBySerial[parentSerial]
+		}
+		if !found && parentURI != "" {
+			parentDevice, found = deviceMapByURI[parentURI]
+		}
+
 		if !found {
-			r.Logger.Errorf("Reconciling %s (Pass 2): Parent device with serial %s not found for child %s", snapshot.GetName(), parentSerial, dev.Spec.SerialNumber)
+			r.Logger.Errorf("Reconciling %s (Pass 2): Parent device not found for child %s", snapshot.GetName(), identityKey)
 			continue
 		}
 		if dev.Spec.ParentID == parentDevice.GetUID() {
@@ -108,17 +168,22 @@ func (r *DiscoverySnapshotReconciler) reconcileDiscoverySnapshot(ctx context.Con
 	return nil
 }
 
-func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec v1.DeviceSpec, serialNumber string) (*v1.Device, error) {
+func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec v1.DeviceSpec, serialNumber string, uri string) (*v1.Device, error) {
 	uid, err := resource.GenerateUIDForResource("Device")
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate UID for device: %w", err)
+	}
+
+	name := serialNumber
+	if name == "" {
+		name = uri
 	}
 
 	newDevice := &v1.Device{
 		APIVersion: "example.fabrica.dev/v1",
 		Kind:       "Device",
 		Metadata: fabrica.Metadata{
-			Name: serialNumber,
+			Name: name,
 			UID:  uid,
 		},
 		Spec: spec,
@@ -126,17 +191,19 @@ func (r *DiscoverySnapshotReconciler) createNewDevice(ctx context.Context, spec 
 	newDevice.Metadata.Initialize(newDevice.Metadata.Name, newDevice.Metadata.UID)
 
 	if err := r.Client.Create(ctx, newDevice); err != nil {
-		return nil, fmt.Errorf("failed to create device %s: %w", serialNumber, err)
+		return nil, fmt.Errorf("failed to create device %s: %w", name, err)
 	}
 	return newDevice, nil
 }
 
-func (r *DiscoverySnapshotReconciler) buildDeviceMapBySerial(ctx context.Context) (map[string]*v1.Device, error) {
+func (r *DiscoverySnapshotReconciler) buildDeviceMaps(ctx context.Context) (map[string]*v1.Device, map[string]*v1.Device, error) {
 	resourceList, err := r.Client.List(ctx, "Device")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	deviceMap := make(map[string]*v1.Device)
+	deviceMapBySerial := make(map[string]*v1.Device)
+	deviceMapByURI := make(map[string]*v1.Device)
+
 	for _, item := range resourceList {
 		dev, ok := item.(*v1.Device)
 		if !ok {
@@ -144,8 +211,13 @@ func (r *DiscoverySnapshotReconciler) buildDeviceMapBySerial(ctx context.Context
 			continue
 		}
 		if dev.Spec.SerialNumber != "" {
-			deviceMap[dev.Spec.SerialNumber] = dev
+			deviceMapBySerial[dev.Spec.SerialNumber] = dev
+		}
+		
+		uri := extractStringProperty(dev.Spec.Properties, "redfish_uri")
+		if uri != "" {
+			deviceMapByURI[uri] = dev
 		}
 	}
-	return deviceMap, nil
+	return deviceMapBySerial, deviceMapByURI, nil
 }
