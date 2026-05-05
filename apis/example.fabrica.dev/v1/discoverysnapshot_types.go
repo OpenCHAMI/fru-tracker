@@ -6,15 +6,15 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/openchami/fabrica/pkg/fabrica"
-        "encoding/json"
 )
 
 // DiscoverySnapshot represents a discoverysnapshot resource
 type DiscoverySnapshot struct {
-	APIVersion string           `json:"apiVersion"`
-	Kind       string           `json:"kind"`
-	Metadata   fabrica.Metadata `json:"metadata"`
+	APIVersion string                  `json:"apiVersion"`
+	Kind       string                  `json:"kind"`
+	Metadata   fabrica.Metadata        `json:"metadata"`
 	Spec       DiscoverySnapshotSpec   `json:"spec" validate:"required"`
 	Status     DiscoverySnapshotStatus `json:"status,omitempty"`
 }
@@ -43,6 +43,7 @@ func (r *DiscoverySnapshot) Validate(ctx context.Context) error {
 
 	return nil
 }
+
 // GetKind returns the kind of the resource
 func (r *DiscoverySnapshot) GetKind() string {
 	return "DiscoverySnapshot"

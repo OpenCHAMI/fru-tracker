@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 OpenCHAMI Contributors
+//
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -21,7 +25,9 @@ import (
 func TestDiscoverySnapshotIntegration(t *testing.T) {
 	// 1. Setup in-memory Ent storage for the test
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	defer client.Close()
+	t.Cleanup(func() {
+		require.NoError(t, client.Close())
+	})
 	storage.SetEntClient(client)
 
 	// 2. Register resource prefixes (required for CreateDiscoverySnapshot)
@@ -35,7 +41,7 @@ func TestDiscoverySnapshotIntegration(t *testing.T) {
 	// 4. Prepare the payload with at least one Node, one CPU, and one DIMM
 	// Looking at apis/example.fabrica.dev/v1/device_types.go and reconcilers
 	// DiscoverySnapshotSpec.RawData is expected to be a list of DeviceSpec
-	
+
 	nodeSerial := "node-001"
 	cpuSerial := "cpu-001"
 	dimmSerial := "dimm-001"

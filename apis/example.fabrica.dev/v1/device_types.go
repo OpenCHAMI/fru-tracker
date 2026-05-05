@@ -6,8 +6,8 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/openchami/fabrica/pkg/fabrica"
-        "encoding/json"
 )
 
 // Device represents a device resource
@@ -15,8 +15,8 @@ type Device struct {
 	APIVersion string           `json:"apiVersion"`
 	Kind       string           `json:"kind"`
 	Metadata   fabrica.Metadata `json:"metadata"`
-	Spec       DeviceSpec   `json:"spec" validate:"required"`
-	Status     DeviceStatus `json:"status,omitempty"`
+	Spec       DeviceSpec       `json:"spec" validate:"required"`
+	Status     DeviceStatus     `json:"status,omitempty"`
 }
 
 // DeviceSpec defines the desired state of Device
@@ -52,6 +52,7 @@ func (r *Device) Validate(ctx context.Context) error {
 
 	return nil
 }
+
 // GetKind returns the kind of the resource
 func (r *Device) GetKind() string {
 	return "Device"

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 OpenCHAMI Contributors
+//
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -18,7 +22,9 @@ var bmcIP string
 func init() {
 	// Define the --ip flag for the BMC IP
 	rootCmd.Flags().StringVarP(&bmcIP, "ip", "i", "", "The IP address of the BMC to gather inventory from (required)")
-	rootCmd.MarkFlagRequired("ip")
+	if err := rootCmd.MarkFlagRequired("ip"); err != nil {
+		panic(fmt.Sprintf("failed to mark required flag: %v", err))
+	}
 }
 
 func main() {

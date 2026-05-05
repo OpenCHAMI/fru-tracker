@@ -81,4 +81,3 @@ jobs:
           subject-name: ghcr.io/openchami/fru-tracker
           subject-digest: ${{ steps.process_goreleaser_output.outputs.digest }}
           push-to-registry: true
-
