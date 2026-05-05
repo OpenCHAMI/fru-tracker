@@ -1,10 +1,16 @@
+<!--
+SPDX-FileCopyrightText: 2026 OpenCHAMI Contributors
+
+SPDX-License-Identifier: MIT
+-->
+
 # FRU-Tracker Collector Extension Plan
 
 ## Objective
 Extend the existing Go Redfish collector (`demo/collector`) to gather additional data from a BMC and format it for the OpenCHAMI fru-tracker API. You will be asked to either discover entirely new hardware components or extract additional attributes for existing components.
 
 ## API Data Model Rules
-The API ingests a single `DiscoverySnapshot` containing a `rawData` array of `DeviceSpec` objects. 
+The API ingests a single `DiscoverySnapshot` containing a `rawData` array of `DeviceSpec` objects.
 
 1. **`DeviceType`**: Every component must have a distinct string (e.g., "Node", "CPU", "DIMM", "Drive").
 2. **`Properties.redfish_uri`**: Every device MUST include its Redfish `@odata.id` mapped to `properties["redfish_uri"]`. This acts is used by the service to determinte parent-child relations.

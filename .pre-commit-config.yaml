@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: Copyright © 2025 OpenCHAMI a Series of LF Projects, LLC
+# SPDX-License-Identifier: MIT
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+
+- repo: https://github.com/fsfe/reuse-tool
+  rev: v5.1.1
+  hooks:
+    - id: reuse-lint-file
+
+-   repo: https://github.com/tekwizely/pre-commit-golang
+    # See 'pre-commit help autoupdate'
+    rev: v1.0.0-rc.2
+    hooks:
+
+    # Disabled go-mod-tidy in favor of custom hook below that properly excludes examples
+    # -   id: go-mod-tidy
+    #     exclude: '^(test/integration|examples)/'
+    # Disabled go-test-mod in favor of custom hook below that excludes examples
+    # -   id: go-test-mod
+    #     exclude: '^(test/integration|examples)/'
+    # Disabled go-vet-mod in favor of custom hook below that excludes examples
+    # -   id: go-vet-mod
+    #     exclude: '^(test/integration|examples)/'
+
+    #
+    # Formatters
+    #
+    -   id: go-fmt-repo
+        args: ["-w"]
+
+    #
+    # Style Checkers
+    # Disabled golangci-lint-mod in favor of custom hook below that excludes examples
+    # -   id: golangci-lint-mod
+    #     exclude: '^(test/integration|examples)/'
+
+# Custom local hooks
+-   repo: local
+    hooks:
+    -   id: go-mod-tidy-exclude-examples
+        name: go mod tidy (excluding examples)
+        # Temporarily rename examples to hide it from go mod tidy, then restore it
+        entry: bash -c 'if [ -d examples ]; then mv examples .examples.tmp && trap "rm -rf examples; mv .examples.tmp examples" EXIT; go mod tidy; else go mod tidy; fi'
+        language: system
+        pass_filenames: false
+        types: [go]
+        files: '^(go\.(mod|sum)|cmd/|pkg/|internal/).*'
+
+    -   id: go-vet-mod-exclude-examples
+        name: go vet (excluding examples)
+        # Temporarily rename examples to hide it from go vet, then restore it
+        entry: bash -c 'if [ -d examples ]; then mv examples .examples.tmp && trap "rm -rf examples; mv .examples.tmp examples" EXIT; go vet -mod=mod ./...; else go vet -mod=mod ./...; fi'
+        language: system
+        pass_filenames: false
+        types: [go]
+        files: '^(cmd/|pkg/|internal/).*\.go$'
+
+    -   id: golangci-lint-mod-exclude-examples
+        name: golangci-lint (excluding examples)
+        # Temporarily rename examples to hide it from golangci-lint, then restore it
+        entry: bash -c 'if [ -d examples ]; then mv examples .examples.tmp && trap "rm -rf examples; mv .examples.tmp examples" EXIT; golangci-lint run --fix=false; else golangci-lint run --fix=false; fi'
+        language: system
+        pass_filenames: false
+        types: [go]
+        files: '^(cmd/|pkg/|internal/).*\.go$'
+
+    -   id: go-test-mod-exclude-examples
+        name: go test (excluding examples and integration tests)
+        entry: bash -c 'go test -mod=readonly -race $(go list ./... 2>/dev/null | grep -v -e "/examples/" -e "/test/integration")'
+        language: system
+        pass_filenames: false
+        types: [go]
+
+    #

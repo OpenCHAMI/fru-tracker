@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 OpenCHAMI Contributors
+
+SPDX-License-Identifier: MIT
+-->
+
 # fru-tracker Extensible Collector Tutorial
 
 This tutorial demonstrates how to run the fru-tracker API locally and use GitHub Copilot to extend the provided Redfish Go collector to gather additional hardware components.

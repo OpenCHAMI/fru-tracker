@@ -1,8 +1,12 @@
+// SPDX-FileCopyrightText: 2026 OpenCHAMI Contributors
+//
+// SPDX-License-Identifier: MIT
+
 // This file contains the complete Redfish discovery and API posting logic.
 package main
 
 import (
-"context"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -120,9 +124,13 @@ func (c *RedfishClient) Get(path string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute Redfish request for %s: %w", targetURL, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Printf("warning: failed to close response body for %s: %v\n", targetURL, closeErr)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Redfish API returned status code %d for %s", resp.StatusCode, targetURL)
+		return nil, fmt.Errorf("redfish API returned status code %d for %s", resp.StatusCode, targetURL)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

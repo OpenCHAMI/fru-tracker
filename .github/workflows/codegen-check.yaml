@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 OpenCHAMI Contributors
+#
+# SPDX-License-Identifier: MIT
+
+name: Codegen Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apis/**"
+      - "cmd/server/**"
+      - "internal/middleware/**"
+      - "internal/storage/**"
+      - "pkg/apiversion/**"
+      - "pkg/client/**"
+      - "pkg/reconcilers/**"
+      - "Makefile"
+      - ".github/workflows/codegen-check.yaml"
+  workflow_dispatch:
+
+jobs:
+  codegen-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@v6.4.0
+        with:
+          go-version: stable
+
+      - name: Verify generated code is committed
+        run: make generate-check
