@@ -1,0 +1,38 @@
+# Copyright © 2026 OpenCHAMI a Series of LF Projects, LLC
+#
+# SPDX-License-Identifier: MIT
+
+name: Stale issues/PRs (org default)
+
+on:
+  schedule:
+    - cron: "23 3 * * *"   # daily at 03:23 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  run-stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 35
+          days-before-close: 7
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-issue-labels: "pinned,security,help wanted"
+          exempt-pr-labels: "pinned,security"
+          operations-per-run: 500
+          remove-stale-when-updated: true
+          stale-issue-message: >
+            This issue has been automatically marked as stale due to inactivity.
+            Please add a comment or label to keep it open; otherwise it will close in 7 days.
+          close-issue-message: >
+            Closing due to inactivity. Feel free to reopen with new information.
+          stale-pr-message: >
+            This PR has been marked stale due to inactivity. Comment or push changes to keep it open.
+          close-pr-message: >
+            Closing due to inactivity. Please reopen when it’s ready again.

@@ -29,6 +29,10 @@ data/
 *.yml
 !example.yaml
 !example.yml
+!.github/workflows/*.yaml
+!.github/workflows/*.yml
+!.fabrica.yaml
+
 
 # IDE files
 .vscode/
