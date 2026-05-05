@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-.PHONY: help build test test-integration lint clean install run docker-build docker-run release-test check-no-pkg-resources-imports generate generate-check dev
+.PHONY: help build test test-integration lint clean install run docker-build docker-run release-test check-no-pkg-resources-imports generate generate-check dev reuse-annotate-generated
 
 # Variables
 BINARY_NAME=fru-tracker-server
@@ -43,6 +43,22 @@ ifneq ($(strip $(LOCAL_FABRICA)),)
 	fi
 endif
 	$(FABRICA_ENV) $(FABRICA_CMD) generate $(FABRICA_SOURCE_ARG)
+	$(GO) mod tidy
+	@$(MAKE) reuse-annotate-generated
+
+reuse-annotate-generated: ## Add SPDX headers to generated Go files when REUSE is installed
+	@if command -v reuse >/dev/null 2>&1; then \
+		files=$$({ \
+			find internal/storage/ent -type f -name '*.go' -print; \
+			find cmd internal pkg -type f -name '*_generated.go' -print; \
+			printf '%s\n' cmd/server/export.go cmd/server/import.go cmd/client/main.go; \
+		} | while IFS= read -r file; do [ -f "$$file" ] && echo "$$file"; done | sort -u); \
+		if [ -n "$$files" ]; then \
+			reuse annotate --copyright="OpenCHAMI Contributors" --license="MIT" --year="$(shell date +%Y)" --skip-existing $$files; \
+		fi; \
+	else \
+		echo "reuse not installed; skipping generated file annotation"; \
+	fi
 
 generate-check: ## Fail if generated files are out of sync (requires clean git tree)
 	@if ! git diff --quiet || ! git diff --cached --quiet; then \
