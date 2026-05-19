@@ -12,12 +12,12 @@ import (
 	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/example/fru-tracker/internal/storage"
 	"github.com/example/fru-tracker/internal/storage/ent/enttest"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/openchami/fabrica/pkg/events"
 	"github.com/openchami/fabrica/pkg/fabrica"
 	"github.com/openchami/fabrica/pkg/resource"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestDiscoverySnapshotReconciler(t *testing.T) {
@@ -25,8 +25,8 @@ func TestDiscoverySnapshotReconciler(t *testing.T) {
 	resource.RegisterResourcePrefix("DiscoverySnapshot", "discoverysnapshot")
 
 	tests := []struct {
-		name              string
-		seedDevices       []*v1.Device
+		name               string
+		seedDevices        []*v1.Device
 		payload            []v1.DeviceSpec
 		expectedCount      int
 		expectedSerials    map[string]string
@@ -115,14 +115,12 @@ func TestDiscoverySnapshotReconciler(t *testing.T) {
 			bus := events.NewInMemoryEventBus(10, 10)
 			bus.Start()
 			t.Cleanup(func() {
-				bus.Close()
+				_ = bus.Close()
 			})
 
 			reconciler := NewDefaultDiscoverySnapshotReconciler(storage.NewStorageClient(), bus)
 			seedDevices := make([]*v1.Device, 0, len(tt.seedDevices))
-			for _, seed := range tt.seedDevices {
-				seedDevices = append(seedDevices, seed)
-			}
+			seedDevices = append(seedDevices, tt.seedDevices...)
 			if len(seedDevices) > 0 {
 				require.NoError(t, storage.SaveDevicesBulk(ctx, seedDevices))
 			}
@@ -187,7 +185,7 @@ func newDevice(t *testing.T, serialNumber, name, deviceType string, properties m
 	device := &v1.Device{
 		APIVersion: "example.fabrica.dev/v1",
 		Kind:       "Device",
-		Metadata: fabrica.Metadata{Name: name},
+		Metadata:   fabrica.Metadata{Name: name},
 		Spec: v1.DeviceSpec{
 			DeviceType:   deviceType,
 			SerialNumber: serialNumber,
