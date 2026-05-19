@@ -70,7 +70,7 @@ func DefaultConfig() *Config {
 		WriteTimeout: 15,
 		IdleTimeout:  60,
 
-		DatabaseURL: "file:./data.db?cache=shared&_fk=1",
+		DatabaseURL: "file:/data/fru-tracker.db?cache=shared&_fk=1",
 
 		ReconcileEnabled: true,
 		ReconcileWorkers: 5,
