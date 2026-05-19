@@ -24,7 +24,7 @@ type DeviceSpec struct {
 	DeviceType   string `json:"deviceType" validate:"required"`
 	Manufacturer string `json:"manufacturer,omitempty"`
 	PartNumber   string `json:"partNumber,omitempty"`
-	SerialNumber string `json:"serialNumber" validate:"required"`
+	SerialNumber string `json:"serialNumber"`
 
 	// ParentID holds the UID of the parent device.
 	// This will be populated by the reconciler.
