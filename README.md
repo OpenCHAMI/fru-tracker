@@ -73,13 +73,13 @@ EOF
 Post this payload to the server:
 
 ```bash
-curl -X POST http://localhost:8080/discoverysnapshots \
-  -H "Content-Type: application/json" \
-  -d @upload_request.json
+curl -X POST http://localhost:8080/discoverysnapshots -H "Content-Type: application/json" -d @upload_request.json
 ```
 
 ### 3. Verify the Results
 Retrieve the parsed devices from the API to see the results of the reconciliation:
+
+Warning: Reconciliation runs asynchronously. After posting a discovery snapshot, there is a delay between payload ingestion and settlement of parsed device data in the database. Callers should implement retries or wait briefly before querying `/devices` for final state.
 
 ```bash
 curl -s http://localhost:8080/devices

@@ -3,29 +3,20 @@
 #
 # SPDX-License-Identifier: MIT
 
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS builder
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    git \
-    bash \
-    && rm -rf /var/lib/apt/lists/*
+# Prepare persistent data directory ownership for distroless nonroot user (UID/GID 65532)
+RUN mkdir -p /data && chown 65532:65532 /data
 
-# Create non-root user
-RUN groupadd -g 1000 fru && \
-    useradd -r -u 1000 -g fru fru
+FROM gcr.io/distroless/static-debian12:nonroot
 
-WORKDIR /home/fru
+COPY --from=builder /data /data
 
 # Copy pre-built binaries from GoReleaser
 COPY fru-tracker-server /usr/local/bin/fru-tracker-server
 
-# Set ownership
-RUN chown -R fru:fru /home/fru
-
-# Switch to non-root user
-USER fru
+# Use distroless nonroot user (UID/GID 65532)
+USER nonroot:nonroot
 
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/fru-tracker-server"]
