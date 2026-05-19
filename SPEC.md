@@ -24,13 +24,13 @@ This service relies on the Fabrica framework.
 * **Data to Capture (Spec):** * `DeviceType` (string, required)
 * `Manufacturer` (string, optional)
 * `PartNumber` (string, optional)
-* `SerialNumber` (string, optional) - *Agent Note: Remove the `validate:"required"` tag from this field to support the new URI fallback logic.*
+* `SerialNumber` (string, optional) - *Agent Note: Do not apply a `validate:"required"` tag to this field, as the system must support URI fallback logic.*
 * `ParentID` (string, optional) - Populated by the reconciler.
 * `ParentSerialNumber` (string, optional)
 * `Properties` (map[string]json.RawMessage, optional) - Arbitrary key-value map. Must be leveraged to hold `redfish_uri` and `redfish_parent_uri`.
 
 
-* **State to Track (Status):** Must remain an empty struct (clean state). Explicitly ensure no legacy fields like `ChildrenDeviceIds` are present in the struct.
+* **State to Track (Status):** Must remain an empty struct (clean state).
 
 ### Resource: DiscoverySnapshot
 
@@ -55,27 +55,33 @@ This service relies on the Fabrica framework.
 
 ## 5. Agent Operational Directives (Strict Rules of Engagement)
 
-You are an autonomous software engineering agent. You must achieve the target state defined in Sections 1-4 by executing terminal commands, writing code, and resolving your own errors. You are updating an existing service, not starting from scratch.
+You are an autonomous software engineering agent. You must achieve the target state defined in Sections 1-4 by executing terminal commands, writing code, and resolving your own errors.
 
 **Workflow Loop & Savepoints:**
 
-1. **Clean (Update Directive):** Safely remove outdated Fabrica-generated files without disrupting established release code, non-generated manual business logic, or GitHub workflows. Execute `find . -type f -name "*_generated.go" -delete` to clear generated Go files, and remove generated OpenAPI specs. Do NOT delete `apis/*/*_types.go`, custom `pkg/reconcilers/*`, or any files in `.github/`.
-* *Git Action:* `git add . && git commit -m "chore: clean legacy generated files"`
+1. **Blueprint & Clean (Nuclear Reset):** You must delete the entire application codebase and leave exactly 0 carryover files from the previous implementation, preserving only the release infrastructure.
+* Create a temporary directory and run `fabrica init` to observe the baseline file structure Fabrica creates.
+* Return to the main repository root. Delete all application source code directories by executing `rm -rf cmd/ internal/ pkg/ apis/ demo/ go.mod go.sum .fabrica.yaml`.
+* **CRITICAL PRESERVATION:** You must NOT delete `.github/`, `.goreleaser.yaml`, `.pre-commit-config.yaml`, `Makefile`, `Dockerfile`, `LICENSES/`, or `README.md`.
+* *Git Action:* `git add . -A && git commit -m "chore: purge legacy application code to prepare for clean generation"`
 
 
-2. **Analyze & Design:** Read the business logic required in Section 4. Modify the exact Go struct fields required for the Spec and Status of the resources listed in Section 3 within the existing `apis/*/*_types.go` files (creating the new `hardware.openchami.org` API group directory and migrating the types). Ensure the `SerialNumber` required tag is removed.
-3. **Generate:** Run `fabrica generate` to rebuild the scaffold based on the updated types and the existing `.fabrica.yaml` (updated with the new API group).
-* *Git Action:* `git add . && git commit -m "feat: update schemas and regenerate artifacts"`
+2. **Scaffold:** Execute `fabrica init` in the root directory with the parameters defined in Section 2. Ensure the new API group is used.
+* *Git Action:* `git add . && git commit -m "chore: scaffold fresh project"`
 
 
-4. **Implement:** Update the custom logic in `pkg/reconcilers/discoverysnapshot_reconciler.go` to implement the URI fallback logic, scoped memory reads, cycle detection, and bulk database operations defined in Section 4.
-5. **Verify (CRITICAL):** You must run `go mod tidy` and `go build ./...` after modifying any Go files. If the compiler outputs errors, you must read the error, modify the code, and re-compile autonomously.
-6. **Test (Unit):** Update or write table-driven tests for the custom reconciliation logic to cover URI fallback, graph cycle detection, and record merging scenarios. Run `go test ./...`. Ensure tests pass.
+3. **Define & Generate:** Use `fabrica add resource` for each item in Section 3. Modify the newly generated `*_types.go` files to implement the schema you designed. Run `fabrica generate`.
+* *Git Action:* `git add . && git commit -m "feat: define resources and generate artifacts"`
+
+
+4. **Implement from Scratch:** Write the custom logic defined in Section 4 from scratch in the newly generated `pkg/reconcilers/discoverysnapshot_reconciler.go` file. Implement the URI fallback logic, scoped memory reads, cycle detection, and bulk database operations.
+5. **Verify (CRITICAL):** Run `go mod tidy` and `go build ./...` after modifying any Go files. If the compiler outputs errors, read the error, modify the code, and re-compile autonomously.
+6. **Test (Unit):** Write table-driven tests for the custom reconciliation logic to cover URI fallback, graph cycle detection, and record merging scenarios. Run `go test ./...`. Ensure tests pass.
 * *Git Action:* `git add . && git commit -m "feat: implement and test optimized reconciliation logic"`
 
 
-7. **Verify (Integration):** You must verify the server successfully binds to the port and routes HTTP requests.
-* Start the server locally in the background using the exact required arguments (e.g., `go run ./cmd/server serve --database-url="file:data.db?cache=shared&_fk=1"`).
+7. **Verify (Integration):** Verify the server successfully binds to the port and routes HTTP requests.
+* Start the server locally in the background using the exact required arguments.
 * Execute a `curl` POST request to the local endpoint to create a `DiscoverySnapshot` containing payload records testing the fallback and merge logic.
 * If the response is a 404, 400, or 500, analyze the server logs, correct the payload or endpoint path, and re-test until you receive a successful 2xx HTTP status code.
 * Terminate the background server process.
