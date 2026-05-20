@@ -65,7 +65,9 @@ dockers:
     goos: linux
     goarch: amd64
     image_templates:
-      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:{{ .Tag }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}-amd64"
       - "ghcr.io/openchami/fru-tracker:latest-amd64"
     dockerfile: Dockerfile
     use: buildx
@@ -79,9 +81,17 @@ dockers:
       - "--label=org.opencontainers.image.licenses=MIT"
 
 docker_manifests:
-  - name_template: "ghcr.io/openchami/fru-tracker:{{ .Version }}"
+  - name_template: "ghcr.io/openchami/fru-tracker:{{ .Tag }}"
     image_templates:
-      - "ghcr.io/openchami/fru-tracker:{{ .Version }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:{{ .Tag }}-amd64"
+
+  - name_template: "ghcr.io/openchami/fru-tracker:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}.{{ .Minor }}-amd64"
+
+  - name_template: "ghcr.io/openchami/fru-tracker:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}-amd64"
 
   - name_template: "ghcr.io/openchami/fru-tracker:latest"
     image_templates:
@@ -103,7 +113,7 @@ release:
 
     #### Docker
     ```bash
-    docker pull ghcr.io/openchami/fru-tracker:{{ .Version }}
+    docker pull ghcr.io/openchami/fru-tracker:{{ .Tag }}
     ```
 
     #### Go Install
