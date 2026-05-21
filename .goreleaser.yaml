@@ -14,11 +14,12 @@ builds:
     main: ./cmd/server
     binary: fru-tracker-server
     env:
-      - CGO_ENABLED=1
+      - CGO_ENABLED=0
     goos:
       - linux
     goarch:
       - amd64
+      - arm64
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -29,7 +30,9 @@ builds:
 
 archives:
   - id: fru-tracker
-    builds:
+    # Renamed from `builds` per goreleaser deprecation notice; same
+    # semantics. See https://goreleaser.com/deprecations#archivesbuilds.
+    ids:
       - fru-tracker-server
     name_template: >-
       {{ .ProjectName }}_
@@ -46,7 +49,13 @@ checksum:
   algorithm: sha256
 
 snapshot:
-  version_template: "{{ incpatch .Version }}-next"
+  # `incpatch` requires `.Version` to be valid semver — it dies with
+  # `invalid semantic version` whenever goreleaser is invoked from a
+  # ref that isn't a `vX.Y.Z` tag (PR builds tagged `pr-N`, local
+  # work from `main`, anything cut from a feature branch). Use a
+  # template that's semver-shaped but doesn't try to do version math
+  # so snapshot builds work in every state.
+  version_template: "0.0.0-SNAPSHOT-{{ .ShortCommit }}"
 
 changelog:
   sort: asc
@@ -59,6 +68,14 @@ changelog:
       - Merge pull request
       - Merge branch
 
+# Image-tag templates intentionally use `{{ .Tag }}` (the raw git
+# tag like `v0.2.4`) rather than `{{ .Version }}` (which strips the
+# `v` and would publish `0.2.4`). The integration-sandbox and other
+# downstream consumers resolve the latest GitHub Release via the
+# API, which returns the `tag_name` verbatim — keeping GHCR tags in
+# the same shape avoids a v-prefix mismatch on pull. The OCI
+# `image.version` label still uses `{{ .Version }}` since that's a
+# semver value, not a tag identifier.
 dockers:
   - id: fru-tracker-amd64
     ids: [fru-tracker-server]
@@ -66,8 +83,6 @@ dockers:
     goarch: amd64
     image_templates:
       - "ghcr.io/openchami/fru-tracker:{{ .Tag }}-amd64"
-      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}.{{ .Minor }}-amd64"
-      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}-amd64"
       - "ghcr.io/openchami/fru-tracker:latest-amd64"
     dockerfile: Dockerfile
     use: buildx
@@ -80,22 +95,41 @@ dockers:
       - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--label=org.opencontainers.image.licenses=MIT"
 
+  - id: fru-tracker-arm64
+    ids: [fru-tracker-server]
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/openchami/fru-tracker:{{ .Tag }}-arm64"
+      - "ghcr.io/openchami/fru-tracker:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+# Multi-arch manifest lists. Without both -amd64 and -arm64 image
+# templates listed here, `docker pull ghcr.io/openchami/fru-tracker:vX.Y.Z`
+# resolves to whichever single arch happens to be referenced, and
+# linux/amd64 hosts get an `exec format error` (or, when only the
+# arm64 leaf is published as the manifest itself, a confusing
+# `no matching manifest for linux/amd64` — exactly the v0.2.3
+# regression that sent us here).
 docker_manifests:
   - name_template: "ghcr.io/openchami/fru-tracker:{{ .Tag }}"
     image_templates:
       - "ghcr.io/openchami/fru-tracker:{{ .Tag }}-amd64"
-
-  - name_template: "ghcr.io/openchami/fru-tracker:v{{ .Major }}.{{ .Minor }}"
-    image_templates:
-      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}.{{ .Minor }}-amd64"
-
-  - name_template: "ghcr.io/openchami/fru-tracker:v{{ .Major }}"
-    image_templates:
-      - "ghcr.io/openchami/fru-tracker:v{{ .Major }}-amd64"
+      - "ghcr.io/openchami/fru-tracker:{{ .Tag }}-arm64"
 
   - name_template: "ghcr.io/openchami/fru-tracker:latest"
     image_templates:
       - "ghcr.io/openchami/fru-tracker:latest-amd64"
+      - "ghcr.io/openchami/fru-tracker:latest-arm64"
 
 release:
   github:
@@ -123,4 +157,5 @@ release:
 
   footer: |
     ---
+    **Full Changelog**: https://github.com/openchami/fru-tracker/compare/{{ .PreviousTag }}...{{ .Tag }}
     **Full Changelog**: https://github.com/openchami/fru-tracker/compare/{{ .PreviousTag }}...{{ .Tag }}
