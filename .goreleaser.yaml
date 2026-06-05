@@ -10,15 +10,34 @@ before:
     - go mod download
 
 builds:
-  - id: fru-tracker-server
+  - id: fru-tracker-server-linux-amd64
     main: ./cmd/server
     binary: fru-tracker-server
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
+      - CC=gcc
     goos:
       - linux
     goarch:
       - amd64
+
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+  - id: fru-tracker-server-linux-arm64
+    main: ./cmd/server
+    binary: fru-tracker-server
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    goos:
+      - linux
+    goarch:
       - arm64
     ldflags:
       - -s -w
@@ -33,7 +52,8 @@ archives:
     # Renamed from `builds` per goreleaser deprecation notice; same
     # semantics. See https://goreleaser.com/deprecations#archivesbuilds.
     ids:
-      - fru-tracker-server
+      - fru-tracker-server-linux-amd64
+      - fru-tracker-server-linux-arm64
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
@@ -78,7 +98,7 @@ changelog:
 # semver value, not a tag identifier.
 dockers:
   - id: fru-tracker-amd64
-    ids: [fru-tracker-server]
+    ids: [fru-tracker-server-linux-amd64]
     goos: linux
     goarch: amd64
     image_templates:
@@ -96,7 +116,7 @@ dockers:
       - "--label=org.opencontainers.image.licenses=MIT"
 
   - id: fru-tracker-arm64
-    ids: [fru-tracker-server]
+    ids: [fru-tracker-server-linux-arm64]
     goos: linux
     goarch: arm64
     image_templates:

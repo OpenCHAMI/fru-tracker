@@ -43,6 +43,10 @@ jobs:
         with:
           fetch-tags: 1
           fetch-depth: 0
+      - name: Install cross-compilers for CGO builds
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
       # Set environment variables required by GoReleaser
       - name: Set build environment variables
         run: |
@@ -50,7 +54,7 @@ jobs:
           echo "BUILD_HOST=$(hostname)" >> $GITHUB_ENV
           echo "GO_VERSION=$(go version | awk '{print $3}')" >> $GITHUB_ENV
           echo "BUILD_USER=$(whoami)" >> $GITHUB_ENV
-          echo "CGO_ENABLED=0" >> $GITHUB_ENV
+          echo "CGO_ENABLED=1" >> $GITHUB_ENV
           echo "IS_PR_BUILD=false" >> $GITHUB_ENV
 
       - name: Release with goreleaser
