@@ -11,13 +11,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/fru-tracker/internal/storage/ent"
-	"github.com/example/fru-tracker/internal/storage/ent/annotation"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	entresource "github.com/example/fru-tracker/internal/storage/ent/resource"
 	"github.com/openchami/fabrica/pkg/fabrica"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
+	"github.com/openchami/fru-tracker/internal/storage/ent/annotation"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	entresource "github.com/openchami/fru-tracker/internal/storage/ent/resource"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // ToEntResource converts a Fabrica resource to an Ent resource entity for storage.

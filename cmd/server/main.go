@@ -18,25 +18,25 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/example/fru-tracker/pkg/apiversion"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/openchami/fabrica/pkg/versioning"
+	_ "github.com/openchami/fru-tracker/pkg/apiversion"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/example/fru-tracker/internal/storage"
+	"github.com/openchami/fru-tracker/internal/storage"
 
-	"github.com/example/fru-tracker/internal/storage/ent"
-	"github.com/example/fru-tracker/internal/storage/ent/migrate"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
+	"github.com/openchami/fru-tracker/internal/storage/ent/migrate"
 
 	_ "github.com/mattn/go-sqlite3"
 
-	. "github.com/example/fru-tracker/internal/middleware"
 	"github.com/openchami/fabrica/pkg/events"
+	. "github.com/openchami/fru-tracker/internal/middleware"
 
-	"github.com/example/fru-tracker/pkg/reconcilers"
 	"github.com/openchami/fabrica/pkg/reconcile"
+	"github.com/openchami/fru-tracker/pkg/reconcilers"
 )
 
 // Config holds all configuration for the service

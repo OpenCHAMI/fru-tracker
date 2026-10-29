@@ -15,6 +15,9 @@ on:
       - "pkg/apiversion/**"
       - "pkg/client/**"
       - "pkg/reconcilers/**"
+      - "go.mod"
+      - "go.sum"
+      - ".fabrica.yaml"
       - "Makefile"
       - ".github/workflows/codegen-check.yaml"
   workflow_dispatch:
@@ -29,7 +32,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6.4.0
         with:
-          go-version: stable
+          go-version-file: go.mod
+
+      - name: Install REUSE for generated SPDX headers
+        run: pipx install reuse
 
       - name: Verify generated code is committed
         run: make generate-check

@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/example/fru-tracker/internal/storage"
+	"github.com/openchami/fru-tracker/internal/storage"
 )
 
 func newExportCommand() *cobra.Command {

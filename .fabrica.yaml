@@ -4,7 +4,7 @@
 
 project:
   name: fru-tracker
-  module: github.com/example/fru-tracker
+  module: github.com/openchami/fru-tracker
   description: OpenCHAMI FRU tracker service with Fabrica-generated REST APIs for hardware discovery and inventory
   created: 2026-02-26T11:09:26-08:00
 features:

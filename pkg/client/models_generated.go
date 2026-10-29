@@ -38,7 +38,7 @@ package client
 import (
 	"github.com/openchami/fabrica/pkg/fabrica"
 
-	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // CreateDeviceRequest represents a request to create a Device

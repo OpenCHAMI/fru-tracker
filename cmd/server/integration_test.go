@@ -12,12 +12,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
-	"github.com/example/fru-tracker/internal/storage"
-	"github.com/example/fru-tracker/internal/storage/ent/enttest"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/openchami/fabrica/pkg/fabrica"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/internal/storage"
+	"github.com/openchami/fru-tracker/internal/storage/ent/enttest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -61,7 +61,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // Client provides access to the inventory API

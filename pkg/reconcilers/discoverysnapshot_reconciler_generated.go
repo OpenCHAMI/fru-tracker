@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/openchami/fabrica/pkg/events"
 	"github.com/openchami/fabrica/pkg/reconcile"
+	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // DiscoverySnapshotReconciler reconciles DiscoverySnapshot resources.

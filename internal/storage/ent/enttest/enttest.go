@@ -9,12 +9,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/example/fru-tracker/internal/storage/ent"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
 	// required by schema hooks.
-	_ "github.com/example/fru-tracker/internal/storage/ent/runtime"
+	_ "github.com/openchami/fru-tracker/internal/storage/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/example/fru-tracker/internal/storage/ent/migrate"
+	"github.com/openchami/fru-tracker/internal/storage/ent/migrate"
 )
 
 type (

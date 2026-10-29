@@ -75,7 +75,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/example/fru-tracker/pkg/client"
+	"github.com/openchami/fru-tracker/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -294,7 +294,7 @@ Spec fields:
   deviceType (string) [required]
   manufacturer (string)
   partNumber (string)
-  serialNumber (string) [required]
+  serialNumber (string)
   parentID (string)
   parentSerialNumber (string)
   properties (map[string]json.RawMessage)
@@ -350,7 +350,7 @@ Spec fields:
   deviceType (string) [required]
   manufacturer (string)
   partNumber (string)
-  serialNumber (string) [required]
+  serialNumber (string)
   parentID (string)
   parentSerialNumber (string)
   properties (map[string]json.RawMessage)

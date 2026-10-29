@@ -7,7 +7,7 @@ package main
 import (
 	"net/http"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // --- Redfish Client Struct ---

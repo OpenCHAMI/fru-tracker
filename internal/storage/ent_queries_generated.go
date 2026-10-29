@@ -8,11 +8,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/example/fru-tracker/internal/storage/ent"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	entresource "github.com/example/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	entresource "github.com/openchami/fru-tracker/internal/storage/ent/resource"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // ensureEntClient verifies the ent client has been initialized

@@ -12,8 +12,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	"github.com/example/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	"github.com/openchami/fru-tracker/internal/storage/ent/resource"
 )
 
 // Label is the model entity for the Label schema.

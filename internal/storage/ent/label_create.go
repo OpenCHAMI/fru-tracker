@@ -13,8 +13,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	"github.com/example/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	"github.com/openchami/fru-tracker/internal/storage/ent/resource"
 )
 
 // LabelCreate is the builder for creating a Label entity.

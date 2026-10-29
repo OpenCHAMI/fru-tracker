@@ -9,7 +9,7 @@ package reconcilers
 import (
 	"context"
 
-	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // reconcileDevice contains custom reconciliation logic.
