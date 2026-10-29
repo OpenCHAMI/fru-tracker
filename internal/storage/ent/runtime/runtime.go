@@ -6,7 +6,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/example/fru-tracker/internal/storage/ent/runtime.go
+// The schema-stitching logic is generated in github.com/openchami/fru-tracker/internal/storage/ent/runtime.go
 
 const (
 	Version = "v0.14.5"                                         // Version of ent codegen.

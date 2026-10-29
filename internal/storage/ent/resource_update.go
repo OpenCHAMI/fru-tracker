@@ -17,10 +17,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/example/fru-tracker/internal/storage/ent/annotation"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	"github.com/example/fru-tracker/internal/storage/ent/predicate"
-	"github.com/example/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent/annotation"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	"github.com/openchami/fru-tracker/internal/storage/ent/predicate"
+	"github.com/openchami/fru-tracker/internal/storage/ent/resource"
 )
 
 // ResourceUpdate is the builder for updating Resource entities.

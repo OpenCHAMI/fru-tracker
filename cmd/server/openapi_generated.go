@@ -23,9 +23,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3gen"
+	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // ServeOpenAPISpec returns the OpenAPI 3.0 specification

@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/example/fru-tracker/internal/storage/ent"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
 )
 
 // WithTx executes fn within a database transaction.

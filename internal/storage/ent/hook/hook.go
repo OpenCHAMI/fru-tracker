@@ -10,7 +10,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/example/fru-tracker/internal/storage/ent"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
 )
 
 // The AnnotationFunc type is an adapter to allow the use of ordinary

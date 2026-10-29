@@ -75,7 +75,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/example/fru-tracker/pkg/client"
+	"github.com/openchami/fru-tracker/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

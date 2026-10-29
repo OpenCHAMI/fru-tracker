@@ -39,7 +39,7 @@ import (
 
 	"github.com/openchami/fabrica/pkg/fabrica"
 
-	"github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // DeviceResponse represents the response for Device operations

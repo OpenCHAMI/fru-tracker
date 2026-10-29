@@ -9,10 +9,10 @@ package ent
 import (
 	"time"
 
-	"github.com/example/fru-tracker/internal/storage/ent/annotation"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	"github.com/example/fru-tracker/internal/storage/ent/resource"
-	"github.com/example/fru-tracker/internal/storage/ent/schema"
+	"github.com/openchami/fru-tracker/internal/storage/ent/annotation"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	"github.com/openchami/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

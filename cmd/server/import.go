@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
-	"github.com/example/fru-tracker/internal/storage"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/internal/storage"
 )
 
 func newImportCommand() *cobra.Command {

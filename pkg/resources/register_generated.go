@@ -11,8 +11,8 @@ package resources
 import (
 	"fmt"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/openchami/fabrica/pkg/codegen"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
 // RegisterAllResources registers all discovered resources with the generator.

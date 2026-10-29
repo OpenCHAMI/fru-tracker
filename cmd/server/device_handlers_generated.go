@@ -41,15 +41,15 @@ import (
 	"net/http"
 	"time"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/openchami/fabrica/pkg/events"
 	"github.com/openchami/fabrica/pkg/patch"
 	"github.com/openchami/fabrica/pkg/resource"
 	"github.com/openchami/fabrica/pkg/validation"
 	"github.com/openchami/fabrica/pkg/versioning"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 
-	"github.com/example/fru-tracker/internal/storage"
+	"github.com/openchami/fru-tracker/internal/storage"
 )
 
 // GetDevices returns all Device resources

@@ -11,10 +11,10 @@ import (
 	"sort"
 	"time"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
-	"github.com/example/fru-tracker/internal/storage/ent"
-	entresource "github.com/example/fru-tracker/internal/storage/ent/resource"
 	"github.com/openchami/fabrica/pkg/resource"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
+	"github.com/openchami/fru-tracker/internal/storage/ent"
+	entresource "github.com/openchami/fru-tracker/internal/storage/ent/resource"
 )
 
 // LoadDevicesByIdentifiers loads Device resources whose names match any of the provided identifiers.

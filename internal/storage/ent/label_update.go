@@ -14,9 +14,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	"github.com/example/fru-tracker/internal/storage/ent/predicate"
-	"github.com/example/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	"github.com/openchami/fru-tracker/internal/storage/ent/predicate"
+	"github.com/openchami/fru-tracker/internal/storage/ent/resource"
 )
 
 // LabelUpdate is the builder for updating Label entities.

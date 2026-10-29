@@ -18,9 +18,9 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/example/fru-tracker/apis/example.fabrica.dev/v1"
-	fabricaclient "github.com/example/fru-tracker/pkg/client"
 	"github.com/openchami/fabrica/pkg/fabrica"
+	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
+	fabricaclient "github.com/openchami/fru-tracker/pkg/client"
 )
 
 // --- Configuration ---

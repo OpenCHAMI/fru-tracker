@@ -6,7 +6,7 @@
 // Template: init/go.mod.tmpl
 // Generated: 2026-02-26T11:09:26-08:00
 
-module github.com/example/fru-tracker
+module github.com/openchami/fru-tracker
 
 go 1.26.2
 

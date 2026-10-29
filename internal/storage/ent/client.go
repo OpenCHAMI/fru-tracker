@@ -13,15 +13,15 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/example/fru-tracker/internal/storage/ent/migrate"
+	"github.com/openchami/fru-tracker/internal/storage/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/example/fru-tracker/internal/storage/ent/annotation"
-	"github.com/example/fru-tracker/internal/storage/ent/label"
-	"github.com/example/fru-tracker/internal/storage/ent/resource"
+	"github.com/openchami/fru-tracker/internal/storage/ent/annotation"
+	"github.com/openchami/fru-tracker/internal/storage/ent/label"
+	"github.com/openchami/fru-tracker/internal/storage/ent/resource"
 )
 
 // Client is the client that holds all ent builders.
