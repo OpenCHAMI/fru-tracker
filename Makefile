@@ -15,7 +15,9 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
-FABRICA_CMD ?= go run github.com/openchami/fabrica/cmd/fabrica@latest
+# Use the Fabrica version selected by go.mod for compatible code generation.
+FABRICA_VERSION = $(shell $(GO) list -m -f '{{.Version}}' github.com/openchami/fabrica)
+FABRICA_CMD ?= go run github.com/openchami/fabrica/cmd/fabrica@$(FABRICA_VERSION)
 FABRICA_SOURCE_ARG ?=
 FABRICA_ENV ?=
 LOCAL_FABRICA ?=

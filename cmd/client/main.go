@@ -294,7 +294,7 @@ Spec fields:
   deviceType (string) [required]
   manufacturer (string)
   partNumber (string)
-  serialNumber (string) [required]
+  serialNumber (string)
   parentID (string)
   parentSerialNumber (string)
   properties (map[string]json.RawMessage)
@@ -350,7 +350,7 @@ Spec fields:
   deviceType (string) [required]
   manufacturer (string)
   partNumber (string)
-  serialNumber (string) [required]
+  serialNumber (string)
   parentID (string)
   parentSerialNumber (string)
   properties (map[string]json.RawMessage)
