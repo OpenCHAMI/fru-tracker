@@ -41,36 +41,44 @@ import (
 	"github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 )
 
-// CreateDeviceRequest represents a request to create a Device
+// CreateDeviceRequest represents a request to create a Device (Advanced API)
+// Use this when you need full control over metadata fields (labels, annotations).
+// For simpler usage, see CreateDeviceSimple in the client.
 type CreateDeviceRequest struct {
-	Metadata    fabrica.Metadata  `json:"metadata" validate:"required"`
-	Spec        v1.DeviceSpec     `json:"spec" validate:"required"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata  `json:"metadata" yaml:"metadata" validate:"required"`
+	Spec        v1.DeviceSpec     `json:"spec" yaml:"spec" validate:"required"`
+	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
-// UpdateDeviceRequest represents a request to update a Device
+// UpdateDeviceRequest represents a request to update a Device (Advanced API)
+// Use this when you need to update metadata fields along with the spec.
+// For simpler usage, see UpdateDeviceSimple in the client.
 type UpdateDeviceRequest struct {
-	Metadata    fabrica.Metadata  `json:"metadata,omitempty"`
-	Spec        v1.DeviceSpec     `json:"spec,omitempty" validate:"omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	Annotations map[string]string `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata  `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	Spec        v1.DeviceSpec     `json:"spec,omitempty" yaml:"spec,omitempty" validate:"omitempty"`
+	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
-// CreateDiscoverySnapshotRequest represents a request to create a DiscoverySnapshot
+// CreateDiscoverySnapshotRequest represents a request to create a DiscoverySnapshot (Advanced API)
+// Use this when you need full control over metadata fields (labels, annotations).
+// For simpler usage, see CreateDiscoverySnapshotSimple in the client.
 type CreateDiscoverySnapshotRequest struct {
-	Metadata    fabrica.Metadata         `json:"metadata" validate:"required"`
-	Spec        v1.DiscoverySnapshotSpec `json:"spec" validate:"required"`
-	Labels      map[string]string        `json:"labels,omitempty"`
-	Annotations map[string]string        `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata         `json:"metadata" yaml:"metadata" validate:"required"`
+	Spec        v1.DiscoverySnapshotSpec `json:"spec" yaml:"spec" validate:"required"`
+	Labels      map[string]string        `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Annotations map[string]string        `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
-// UpdateDiscoverySnapshotRequest represents a request to update a DiscoverySnapshot
+// UpdateDiscoverySnapshotRequest represents a request to update a DiscoverySnapshot (Advanced API)
+// Use this when you need to update metadata fields along with the spec.
+// For simpler usage, see UpdateDiscoverySnapshotSimple in the client.
 type UpdateDiscoverySnapshotRequest struct {
-	Metadata    fabrica.Metadata         `json:"metadata,omitempty"`
-	Spec        v1.DiscoverySnapshotSpec `json:"spec,omitempty" validate:"omitempty"`
-	Labels      map[string]string        `json:"labels,omitempty"`
-	Annotations map[string]string        `json:"annotations,omitempty"`
+	Metadata    fabrica.Metadata         `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	Spec        v1.DiscoverySnapshotSpec `json:"spec,omitempty" yaml:"spec,omitempty" validate:"omitempty"`
+	Labels      map[string]string        `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Annotations map[string]string        `json:"annotations,omitempty" yaml:"annotations,omitempty"`
 }
 
 // DeleteResponse represents a successful deletion response

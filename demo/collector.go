@@ -21,6 +21,7 @@ import (
 	"github.com/openchami/fabrica/pkg/fabrica"
 	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 	fabricaclient "github.com/openchami/fru-tracker/pkg/client"
+	"github.com/rs/zerolog"
 )
 
 // --- Configuration ---
@@ -61,7 +62,7 @@ func CollectAndPost(bmcIP string) error {
 	}
 
 	// --- 4. INITIALIZE API CLIENT (THE SDK) ---
-	sdkClient, err := fabricaclient.NewClient(InventoryAPIHost, nil)
+	sdkClient, err := fabricaclient.NewClient(InventoryAPIHost, nil, zerolog.Nop())
 	if err != nil {
 		return fmt.Errorf("failed to create fabrica client: %w", err)
 	}

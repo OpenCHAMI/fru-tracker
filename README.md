@@ -19,6 +19,33 @@ Unlike a simple CRUD API, this service is designed to be populated by a collecto
 4.  The reconciler performs a "get-or-create" for each `Device` in the payload, using the **serialNumber** as the unique key.
 5.  A two-pass system ensures that after all devices are created, parent/child relationships are linked by resolving the `parentSerialNumber` (from the collector) to the `parentID` (the parent's UUID in the database).
 
+## Code Generation
+
+This service uses Fabrica v0.4.14 and requires Go 1.26.10 or newer. With Go's
+automatic toolchain selection enabled, the required toolchain is downloaded as needed.
+
+Regenerate using the Fabrica version pinned in `go.mod`:
+
+```bash
+make generate
+```
+
+To generate from a matching local Fabrica checkout instead:
+
+```bash
+make -C ../fabrica build
+make generate LOCAL_FABRICA=../fabrica
+```
+
+Install the REUSE CLI before generation to preserve generated SPDX headers, as CI does.
+After regeneration, validate all packages, including the demo collector:
+
+```bash
+go test -race -timeout 5m ./...
+go build ./cmd/server ./cmd/client ./demo
+go vet ./...
+```
+
 ## What Can You Do To Work With This Today?
 
 You can run the service locally and simulate a hardware discovery event to see the event-driven reconciliation in action.
