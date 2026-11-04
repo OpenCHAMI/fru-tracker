@@ -12,10 +12,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/openchami/fru-tracker/internal/storage"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-
-	"github.com/openchami/fru-tracker/internal/storage"
 )
 
 func newExportCommand() *cobra.Command {
@@ -68,11 +67,6 @@ func runExport(ctx context.Context, format, output string, kinds []string, perTy
 		return fmt.Errorf("unsupported format: %s (use 'json' or 'yaml')", format)
 	}
 
-	// Create output directory
-	if err := os.MkdirAll(output, 0755); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
-	}
-
 	// Determine resource kinds to export
 	var resourceKinds []string
 	if len(kinds) > 0 {
@@ -80,6 +74,14 @@ func runExport(ctx context.Context, format, output string, kinds []string, perTy
 	} else {
 		// Export all known resource types
 		resourceKinds = []string{"Device", "DiscoverySnapshot"}
+	}
+	if err := validateExportKinds(resourceKinds); err != nil {
+		return err
+	}
+
+	// Create output directory only after every requested kind passes preflight.
+	if err := os.MkdirAll(output, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
 	totalExported := 0
@@ -94,6 +96,18 @@ func runExport(ctx context.Context, format, output string, kinds []string, perTy
 	}
 
 	fmt.Printf("✅ Export complete. Exported %d resources.\n", totalExported)
+	return nil
+}
+
+func validateExportKinds(kinds []string) error {
+	for _, kind := range kinds {
+		switch kind {
+		case "Device":
+		case "DiscoverySnapshot":
+		default:
+			return fmt.Errorf("unknown resource kind: %s", kind)
+		}
+	}
 	return nil
 }
 

@@ -10,6 +10,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -18,9 +21,13 @@ import (
 	v1 "github.com/openchami/fru-tracker/apis/example.fabrica.dev/v1"
 	"github.com/openchami/fru-tracker/internal/storage"
 	"github.com/openchami/fru-tracker/internal/storage/ent/enttest"
+	fabricaclient "github.com/openchami/fru-tracker/pkg/client"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var registerTestResourcePrefixes = sync.OnceValue(registerResourcePrefixes)
 
 func TestDiscoverySnapshotIntegration(t *testing.T) {
 	// 1. Setup in-memory Ent storage for the test
@@ -31,7 +38,7 @@ func TestDiscoverySnapshotIntegration(t *testing.T) {
 	storage.SetEntClient(client)
 
 	// 2. Register resource prefixes (required for CreateDiscoverySnapshot)
-	err := registerResourcePrefixes()
+	err := registerTestResourcePrefixes()
 	require.NoError(t, err)
 
 	// 3. Setup router and routes
@@ -118,4 +125,70 @@ func TestDiscoverySnapshotIntegration(t *testing.T) {
 	err = json.Unmarshal(persisted.Spec.RawData, &actualSpecs)
 	require.NoError(t, err)
 	assert.Equal(t, expectedSpecs, actualSpecs)
+}
+
+func TestGeneratedClientAndBackupIntegration(t *testing.T) {
+	ctx := context.Background()
+	client := enttest.Open(t, "sqlite3", "file:client-backup?mode=memory&cache=shared&_fk=1")
+	t.Cleanup(func() {
+		require.NoError(t, client.Close())
+	})
+	storage.SetEntClient(client)
+	require.NoError(t, registerTestResourcePrefixes())
+
+	router := chi.NewRouter()
+	RegisterGeneratedRoutes(router)
+	server := httptest.NewServer(router)
+	t.Cleanup(server.Close)
+	sdk, err := fabricaclient.NewClient(server.URL, server.Client(), zerolog.Nop())
+	require.NoError(t, err)
+
+	device, err := sdk.CreateDevice(ctx, fabricaclient.CreateDeviceRequest{
+		Metadata: fabrica.Metadata{
+			Name:   "backup-node",
+			Labels: map[string]string{"site": "test"},
+		},
+		Spec: v1.DeviceSpec{DeviceType: "Node", SerialNumber: "backup-node-001"},
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, device.Metadata.UID)
+
+	device.Spec.Manufacturer = "Updated manufacturer"
+	updated, err := sdk.UpdateDeviceSimple(ctx, device.Metadata.UID, device.Spec)
+	require.NoError(t, err)
+	assert.Equal(t, device.Spec, updated.Spec)
+	assert.Equal(t, device.Metadata.Labels, updated.Metadata.Labels)
+
+	rawData, err := json.Marshal([]v1.DeviceSpec{updated.Spec})
+	require.NoError(t, err)
+	snapshot, err := sdk.CreateDiscoverySnapshotSimple(ctx, "backup-snapshot", v1.DiscoverySnapshotSpec{RawData: rawData})
+	require.NoError(t, err)
+	require.NotEmpty(t, snapshot.Metadata.UID)
+
+	backupDir := t.TempDir()
+	require.NoError(t, runExport(ctx, "json", backupDir, nil, true))
+	require.FileExists(t, filepath.Join(backupDir, "devices", "device-0.json"))
+	require.FileExists(t, filepath.Join(backupDir, "discoverysnapshots", "discoverysnapshot-0.json"))
+	importDir := t.TempDir()
+	for name, resource := range map[string]interface{}{"device.json": updated, "snapshot.json": snapshot} {
+		data, err := json.Marshal(resource)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(filepath.Join(importDir, name), data, 0600))
+	}
+	_, err = client.Label.Delete().Exec(ctx)
+	require.NoError(t, err)
+	require.NoError(t, sdk.DeleteDevice(ctx, device.Metadata.UID))
+	require.NoError(t, sdk.DeleteDiscoverySnapshot(ctx, snapshot.Metadata.UID))
+	devices, err := sdk.GetDevices(ctx)
+	require.NoError(t, err)
+	require.Empty(t, devices)
+
+	require.NoError(t, runImport(ctx, importDir, "upsert", false, false))
+	restored, err := sdk.GetDevice(ctx, device.Metadata.UID)
+	require.NoError(t, err)
+	assert.Equal(t, updated.Spec, restored.Spec)
+	assert.Equal(t, updated.Metadata.Labels, restored.Metadata.Labels)
+	restoredSnapshot, err := sdk.GetDiscoverySnapshot(ctx, snapshot.Metadata.UID)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(rawData), string(restoredSnapshot.Spec.RawData))
 }
